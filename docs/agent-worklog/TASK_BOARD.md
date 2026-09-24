@@ -16,8 +16,8 @@
 | **TASK-004** | **Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026** | TASK-003 | Backend / Data Agent | **DONE** |
 | **TASK-005** | **Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh)** | TASK-004 | Backend Agent | **DONE** |
 | **TASK-006** | **Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín)** | TASK-005 | Backend Agent | **DONE** |
-| **TASK-007** | Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop) | TASK-006 | Backend Agent | **READY** |
-| **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | BACKLOG |
+| **TASK-007** | **Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop)** | TASK-006 | Backend Agent | **DONE** |
+| **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | **READY** |
 | **TASK-009** | Tích hợp Local RAG tra cứu tiêu chuẩn an toàn vi sinh Bộ Y tế (QCVN) | TASK-008 | AI / Agentic Agent | BACKLOG |
 | **TASK-010** | Xây dựng Giao diện Web SPA Cổng Bếp trưởng (Nhập liệu & Bắt lỗi Poka-yoke) | TASK-009 | Frontend Agent | BACKLOG |
 | **TASK-011** | Xây dựng Màn hình Điều hành Khẩn cấp & Đồ thị Chuỗi lây nhiễm Trực quan | TASK-010 | Frontend Agent | BACKLOG |
@@ -131,6 +131,22 @@
   - Test 2 (Dùng nguyên liệu bẩn): Thử nấu món ăn bằng lô thịt gà đã bị từ chối ở Bước 1 (Batch 2) -> **Backend trả về HTTP 422**, thông báo `POKA_YOKE_CONTAMINATED_INGREDIENT` chặn đứng hành vi gian lận.
   - Test 3 (Đạt chuẩn): Nấu gà hấp ở nhiệt độ tâm 88.0°C (>= 75.0°C) với nguyên liệu đạt chuẩn -> **Backend trả về HTTP 201 Created** thông báo `APPROVED`.
   - Database check: Các bản ghi được lưu vết minh bạch trong bảng `inspections_step2`.
+* **Kết quả:** Pass. Commit `0a7c4b1`.
+
+### TASK-007: Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop)
+* **Owner:** Backend Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Cập nhật `backend/app/schemas.py`: Bổ sung `SampleLockerUnlockRequest` (cờ override khẩn cấp, passcode xác thực) và trường `hours_remaining` động.
+  - Viết `backend/app/routers/sample_lockers.py`:
+    + `GET /api/v1/sample-lockers`: Tính toán thời gian đếm ngược (hours_remaining) chính xác theo thời gian thực.
+    + `POST /api/v1/sample-lockers`: Niêm phong mẫu, kích hoạt khóa tủ điện tử, gán thời điểm mở hợp pháp sau đúng 24 giờ.
+    + `POST /api/v1/sample-lockers/{id}/unlock`: Kiểm soát rào chắn Poka-yoke cấm mở sớm; tích hợp cổng phê duyệt ngoại lệ khẩn cấp của con người (Human-in-the-loop) ghi nhận audit trail.
+  - Cập nhật `backend/app/main.py` đăng ký router `sample_lockers`.
+* **Kết quả kiểm thử:**
+  - Test 1 (Poka-yoke chặn mở sớm trái phép): Thử mở tủ khi chưa đủ 24 giờ -> **Backend trả về HTTP 422 Unprocessable Entity**, thông báo `POKA_YOKE_EARLY_UNLOCK_PROHIBITED` khóa chốt tủ điện tử không cho mở.
+  - Test 2 (Phê duyệt Human-in-the-loop khẩn cấp): Mở khóa với cờ `is_emergency_override=true`, lý do "Thanh tra Đột xuất Sở Y tế" và passcode -> **Backend trả về HTTP 200 OK**, giải phóng chốt khóa, chuyển trạng thái sang `ACCIDENT_INSPECTED` và ghi log an toàn.
+
 
 
 

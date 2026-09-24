@@ -181,7 +181,17 @@ class SampleLockerResponse(BaseModel):
     status: str
     tamper_detected: bool
     supervisor_name: str
+    hours_remaining: Optional[float] = None
     model_config = ConfigDict(from_attributes=True)
+
+
+class SampleLockerUnlockRequest(BaseModel):
+    """Yêu cầu mở khóa tủ lưu mẫu 24h kèm cơ chế duyệt Human-in-the-loop."""
+    operator_name: str = Field(..., description="Tên cán bộ thực hiện thao tác")
+    is_emergency_override: bool = Field(False, description="Kích hoạt phê duyệt khẩn cấp (Human-in-the-loop)")
+    override_reason: Optional[str] = Field(None, description="Lý do phê duyệt khẩn cấp (Thanh tra Sở Y tế / Cấp cứu dịch tễ)")
+    override_passcode: Optional[str] = Field(None, description="Mã xác thực quyền Trưởng ban (Mặc định: HITL-EMERGENCY-2026)")
+
 
 
 # ==========================================
