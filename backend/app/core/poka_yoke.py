@@ -2,7 +2,7 @@
 # Copyright 2026 FoodSafe-DX-OS Contributors
 
 from datetime import datetime
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 from .. import models
 from ..schemas import PokaYokeViolation, InspectionStep1Create, InspectionStep2Create
 
@@ -91,13 +91,33 @@ class PokaYokeEngine:
 
     @staticmethod
     def validate_step2(
+        batches: List[models.IngredientBatch],
         data: InspectionStep2Create,
     ) -> Tuple[bool, Optional[PokaYokeViolation]]:
         """
         Kiểm tra rào chắn Poka-yoke Bước 2: Trong quá trình chế biến.
-        Quy chuẩn đối chiếu: Nhiệt độ tâm nấu chín thức ăn tối thiểu 75°C.
+        Quy chuẩn đối chiếu: Thông tư 30/2012/TT-BYT & QCVN 8-2:2011/BYT.
         """
-        # Rào chắn Nhiệt độ tâm thức ăn (Core Cooking Temperature Guard)
+        # 1. Rào chắn Nguyên liệu Đầu vào (Ingredient Pre-inspection Guard)
+        for b in batches:
+            if b.status == "REJECTED":
+                return False, PokaYokeViolation(
+                    error_code="POKA_YOKE_CONTAMINATED_INGREDIENT",
+                    message=f"Lô nguyên liệu '{b.name}' ({b.batch_code}) đã bị TỪ CHỐI ở Bước 1. Nghiêm cấm đưa vào nồi nấu!",
+                    standard_ref="Thông tư 30/2012/TT-BYT Điều 5",
+                    action_required="Thu hồi và loại bỏ ngay lô nguyên liệu này khỏi khu vực bếp.",
+                    blocked_operation="COOKING_MEAL",
+                )
+            if b.status != "APPROVED":
+                return False, PokaYokeViolation(
+                    error_code="POKA_YOKE_UNAPPROVED_INGREDIENT",
+                    message=f"Lô nguyên liệu '{b.name}' ({b.batch_code}) chưa hoàn thành kiểm thực Bước 1 (Trạng thái: {b.status}).",
+                    standard_ref="Thông tư 30/2012/TT-BYT Nguyên tắc tuyến tính H-P-D-I",
+                    action_required="Hoàn tất kiểm thực Bước 1 trước khi bắt đầu chế biến.",
+                    blocked_operation="COOKING_MEAL",
+                )
+
+        # 2. Rào chắn Nhiệt độ tâm thức ăn (Core Cooking Temperature Guard)
         if data.core_temp < 75.0:
             return False, PokaYokeViolation(
                 error_code="POKA_YOKE_UNDERCOOKED_TEMP",
@@ -110,6 +130,7 @@ class PokaYokeEngine:
                 blocked_operation="MEAL_DISTRIBUTION",
             )
 
+        # 3. Rào chắn Đánh giá cảm quan nấu chín (Thoroughly Cooked Sensory Guard)
         if data.sensory_check != "COOKED_THOROUGHLY":
             return False, PokaYokeViolation(
                 error_code="POKA_YOKE_SENSORY_UNDERCOOKED",

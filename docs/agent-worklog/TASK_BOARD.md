@@ -15,8 +15,8 @@
 | **TASK-003** | **Xây dựng SQLAlchemy Models & Pydantic Schemas cho 6 thực thể miền an toàn** | TASK-002 | Backend Agent | **DONE** |
 | **TASK-004** | **Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026** | TASK-003 | Backend / Data Agent | **DONE** |
 | **TASK-005** | **Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh)** | TASK-004 | Backend Agent | **DONE** |
-| **TASK-006** | Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín) | TASK-005 | Backend Agent | **READY** |
-| **TASK-007** | Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop) | TASK-006 | Backend Agent | BACKLOG |
+| **TASK-006** | **Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín)** | TASK-005 | Backend Agent | **DONE** |
+| **TASK-007** | Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop) | TASK-006 | Backend Agent | **READY** |
 | **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | BACKLOG |
 | **TASK-009** | Tích hợp Local RAG tra cứu tiêu chuẩn an toàn vi sinh Bộ Y tế (QCVN) | TASK-008 | AI / Agentic Agent | BACKLOG |
 | **TASK-010** | Xây dựng Giao diện Web SPA Cổng Bếp trưởng (Nhập liệu & Bắt lỗi Poka-yoke) | TASK-009 | Frontend Agent | BACKLOG |
@@ -114,6 +114,24 @@
   - Test vi phạm Poka-yoke: Gửi request nhập thịt gà với nhiệt độ 13.5°C (> 4.0°C) -> **Backend trả về HTTP 422 Unprocessable Entity**, thông báo `POKA_YOKE_BLOCKED`, tự động cập nhật lô hàng thành `REJECTED` và lưu vết vi phạm vào database.
   - Test đạt chuẩn: Gửi request nhập thịt gà nhiệt độ 2.0°C (<= 4.0°C) -> **Backend trả về HTTP 201 Created**, thông báo `APPROVED`.
   - Database check: Cả 2 bản ghi (ID 4 và ID 5) được ghi nhận chính xác trong PostgreSQL.
+* **Kết quả:** Pass. Commit `ed8c30c`.
+
+### TASK-006: Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín)
+* **Owner:** Backend Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Nâng cấp `backend/app/core/poka_yoke.py` với phương thức `validate_step2`:
+    1. Kiểm tra nguyên liệu đầu vào: Chặn tuyệt đối việc đưa lô hàng đã bị từ chối ở Bước 1 vào nồi nấu (`POKA_YOKE_CONTAMINATED_INGREDIENT`).
+    2. Rào chắn nhiệt độ tâm nấu chín: Bắt buộc `core_temp >= 75.0°C` theo chuẩn WHO/QCVN để tiêu diệt vi khuẩn đường ruột Salmonella (`POKA_YOKE_UNDERCOOKED_TEMP`).
+    3. Rào chắn cảm quan nấu chín (`POKA_YOKE_SENSORY_UNDERCOOKED`).
+  - Viết `backend/app/routers/inspections_step2.py`: Endpoint POST & GET kiểm thực Bước 2.
+  - Cập nhật `backend/app/main.py` đăng ký router `inspections_step2`.
+* **Kết quả kiểm thử:**
+  - Test 1 (Chưa chín thấu): Nấu thịt gà ở nhiệt độ tâm 63.5°C (< 75.0°C) -> **Backend trả về HTTP 422**, thông báo `POKA_YOKE_UNDERCOOKED_TEMP` khóa không cho xuất phần ăn.
+  - Test 2 (Dùng nguyên liệu bẩn): Thử nấu món ăn bằng lô thịt gà đã bị từ chối ở Bước 1 (Batch 2) -> **Backend trả về HTTP 422**, thông báo `POKA_YOKE_CONTAMINATED_INGREDIENT` chặn đứng hành vi gian lận.
+  - Test 3 (Đạt chuẩn): Nấu gà hấp ở nhiệt độ tâm 88.0°C (>= 75.0°C) với nguyên liệu đạt chuẩn -> **Backend trả về HTTP 201 Created** thông báo `APPROVED`.
+  - Database check: Các bản ghi được lưu vết minh bạch trong bảng `inspections_step2`.
+
 
 
 
