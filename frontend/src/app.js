@@ -396,7 +396,7 @@ async function executeLockerUnlock() {
         const v = res.data.violation || res.data.detail || res.data;
         showPokaYokeModal(v);
     } else if (res.ok) {
-        alert("THAO TÁC THÀNH CÔNG: " + res.data.message);
+        showToast("Mở niêm phong tủ mẫu thành công: " + (res.data.message || 'Đã mở chốt'), "success");
         closeUnlockModal();
         await loadSampleLockers();
     }
@@ -461,13 +461,16 @@ async function triggerRapidTraceDemo() {
                 STATE.graphViewer.setData(data.graph);
             }
 
+            const emptyState = document.getElementById('traceEmptyState');
+            if (emptyState) emptyState.classList.add('hidden');
             resultsPanel.classList.remove('hidden');
+            showToast(`Truy vết BFS hoàn tất trong ${data.execution_time_ms} ms! Phát hiện mầm bệnh ${data.pathogen_analysis.likely_pathogen}.`, "success");
         } else {
-            alert('Lỗi truy vết: ' + JSON.stringify(res.data));
+            showToast('Lỗi truy vết: ' + (res.data?.detail || res.data?.message || JSON.stringify(res.data)), "error");
         }
     } catch (e) {
         console.error('Lỗi truy vết:', e);
-        alert('Lỗi: ' + e.message);
+        showToast('Lỗi hệ thống khi truy vết: ' + e.message, "error");
     } finally {
         traceBtn.disabled = false;
         traceBtn.innerHTML = `<i class="fa-solid fa-bolt text-amber-400 mr-2"></i> Kích Hoạt Truy Vết Thần Tốc (Live Demo)`;
@@ -589,7 +592,48 @@ function closePokaYokeModal() {
     document.getElementById('pokaYokeModal').classList.add('hidden');
 }
 
+function showToast(message, type = 'info', duration = 4000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    const isSuccess = type === 'success';
+    const isError = type === 'error';
+
+    toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl shadow-2xl border text-xs font-medium transition-all transform duration-300 translate-y-2 opacity-0 ${
+        isSuccess ? 'bg-slate-900 border-emerald-500/50 text-emerald-200' :
+        isError ? 'bg-slate-900 border-rose-500/50 text-rose-200' :
+        'bg-slate-900 border-slate-700 text-slate-200'
+    }`;
+
+    const icon = isSuccess ? 'fa-circle-check text-emerald-400' :
+                 isError ? 'fa-circle-exclamation text-rose-400' :
+                 'fa-circle-info text-sky-400';
+
+    toast.innerHTML = `
+        <i class="fa-solid ${icon} text-sm flex-shrink-0"></i>
+        <span class="flex-1">${message}</span>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white transition ml-2">
+            <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
 // Exports
+window.showToast = showToast;
 window.handleStep1Submit = handleStep1Submit;
 window.presetStep1Violation = presetStep1Violation;
 window.presetStep1Pass = presetStep1Pass;
