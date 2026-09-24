@@ -219,8 +219,29 @@
 
 ### TASK-011: Xây dựng Automated Pytest Suite & PoF Compliance Verification
 * **Owner:** QA / Test Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Viết `backend/tests/conftest.py`: Thiết lập TestClient FastAPI và database session fixture.
+  - Viết `backend/tests/test_poka_yoke_step1.py`: 4 test cases kiểm thử giao nhận đạt chuẩn 2.5°C, chặn nhiệt độ 12.5°C, chặn mùi lạ và chặn bao bì rách.
+  - Viết `backend/tests/test_poka_yoke_step2.py`: 3 test cases kiểm thử nấu chín 85.0°C, chặn nấu chưa chín 62.0°C và chặn tái sử dụng lô hàng đã bị từ chối ở Bước 1.
+  - Viết `backend/tests/test_poka_yoke_step3.py`: 3 test cases kiểm thử cấm mở tủ sớm trước 24h, cấm mở khẩn cấp khi nhập sai passcode và duyệt mở khẩn cấp Human-in-the-loop thành công với `HITL-EMERGENCY-2026`.
+  - Viết `backend/tests/test_graph_tracer.py`: 3 test cases kiểm thử BFS < 100ms, chẩn đoán mầm bệnh Salmonella và phát hiện cơ sở nguy cơ cao Trường THCS Quang Trung.
+  - Viết `backend/tests/test_rag_engine.py`: 3 test cases kiểm thử tra cứu RAG offline < 50ms, trích dẫn văn bản pháp luật và catalog quy chuẩn vi sinh.
+  - Viết script thực thi `scripts/run_tests.sh`.
+  - Audit 100% mã nguồn: Xác nhận toàn bộ file mã nguồn (`.py`, `.js`, `.html`, `.css`, `.sh`) đều có header bản quyền chuẩn SPDX Apache-2.0.
+* **Kết quả kiểm thử:**
+  - Chạy `pytest tests/ -v`: **16/16 tests PASSED trong 0.46s**!
+  - 100% rào chắn Poka-yoke và luồng logic vận hành được kiểm chứng tự động.
+* **Kết quả:** Pass. Sẵn sàng commit.
+
+### TASK-012: Hoàn thiện Hồ Sơ Dự Thi VFOSSA & Kịch Bản Demo 7 Phút Chung Kết
+* **Owner:** Lead Orchestrator & Docs Agent
 * **Trạng thái:** IN_PROGRESS
-* **Mục tiêu:** Xây dựng bộ test tự động toàn diện kiểm chứng tất cả các API, rào chắn Poka-yoke, thuật toán BFS và RAG engine, đảm bảo hệ thống đạt chuẩn PoF 50 điểm tuyệt đối của VFOSSA.
+* **Mục tiêu:** Soạn thảo bộ tài liệu hoàn chỉnh theo quy định của BTC cuộc thi OLP PMNM 2026:
+  - `docs/THUYET_MINH_SAN_PHAM.md`: Bản thuyết minh kỹ thuật đầy đủ 6 phần theo yêu cầu BTC (Bối cảnh, Giải pháp, Ánh xạ 4 Không gian, Đóng góp học thuật, Chứng minh PoF).
+  - `docs/KICH_BAN_DEMO_7_PHUT.md`: Kịch bản trình diễn 7 phút trực tiếp trước Ban giám khảo (phân bổ từng giây, từng thao tác bấm trên UI).
+  - `docs/SLIDE_CHUNG_KET.md`: Đề cương 12 slide thuyết trình ấn tượng, đanh thép.
+
 
 
 
