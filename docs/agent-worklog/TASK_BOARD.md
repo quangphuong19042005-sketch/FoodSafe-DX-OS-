@@ -12,8 +12,8 @@
 | :--- | :--- | :--- | :--- | :---: |
 | **TASK-001** | **Khởi tạo Git Repo, License Apache-2.0, .gitignore, Cấu trúc thư mục & Task Board** | None | Orchestrator / Docs | **DONE** |
 | **TASK-002** | **Thiết lập Docker Compose đa dịch vụ (`db`, `backend`, `frontend`) & cấu hình mạng** | TASK-001 | DevOps / Architect | **DONE** |
-| **TASK-003** | Xây dựng SQLAlchemy Models & Pydantic Schemas cho 6 thực thể miền an toàn | TASK-002 | Backend Agent | **READY** |
-| **TASK-004** | Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026 | TASK-003 | Backend / Data Agent | BACKLOG |
+| **TASK-003** | **Xây dựng SQLAlchemy Models & Pydantic Schemas cho 6 thực thể miền an toàn** | TASK-002 | Backend Agent | **DONE** |
+| **TASK-004** | Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026 | TASK-003 | Backend / Data Agent | **READY** |
 | **TASK-005** | Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh) | TASK-004 | Backend Agent | BACKLOG |
 | **TASK-006** | Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín) | TASK-005 | Backend Agent | BACKLOG |
 | **TASK-007** | Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop) | TASK-006 | Backend Agent | BACKLOG |
@@ -59,4 +59,20 @@
   - `curl http://localhost:8000/`: Trả về HTTP 200 JSON hệ thống.
   - `curl http://localhost:3000/api/health`: Reverse proxy hoạt động chuẩn xác (`healthy`, `database: connected`).
   - `curl http://localhost:3000/`: Trả về Web SPA HTML 10.891 bytes.
+* **Kết quả:** Pass. Commit `5fa359c`.
+
+### TASK-003: Xây dựng SQLAlchemy Models & Pydantic Schemas cho 6 thực thể miền an toàn
+* **Owner:** Backend Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Viết `backend/app/database.py`: Tạo engine, sessionmaker, base class và `wait_for_db` retry logic.
+  - Viết `backend/app/models.py`: 7 SQLAlchemy ORM models (`facilities`, `suppliers`, `ingredient_batches`, `inspections_step1`, `inspections_step2`, `sample_lockers`, `incident_reports`) với đầy đủ ràng buộc khóa ngoại, index, kiểu dữ liệu JSON.
+  - Viết `backend/app/schemas.py`: Các Pydantic v2 schemas phục vụ validation request/response và định nghĩa chi tiết lỗi Poka-yoke (`PokaYokeViolation`).
+  - Cập nhật `backend/app/main.py`: Kích hoạt cơ chế lifespan tự động tạo bảng khi container boot.
+* **Kết quả kiểm thử:**
+  - `docker compose up -d --build backend`: Khởi động lại thành công trong 1.2s.
+  - `curl http://localhost:8000/db/tables`: Trả về 7 bảng đã tạo thành công trong PostgreSQL:
+    `["suppliers", "ingredient_batches", "facilities", "inspections_step2", "sample_lockers", "incident_reports", "inspections_step1"]`.
+  - `docker exec foodsafe_db psql -c "\dt"`: Kiểm chứng trực tiếp 7 bảng quan hệ tồn tại trong schema `public`.
+
 
