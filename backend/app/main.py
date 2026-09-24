@@ -4,13 +4,14 @@
 import os
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
-from .database import engine, Base, get_db, wait_for_db
+from .database import engine, Base, SessionLocal, get_db, wait_for_db
 from . import models
+from .seed import seed_initial_data
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("foodsafe.main")
@@ -18,7 +19,7 @@ logger = logging.getLogger("foodsafe.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager to bootstrap database tables on boot."""
+    """Application lifespan manager to bootstrap database tables and seed data on boot."""
     logger.info("Initializing FoodSafe-DX-OS database connection...")
     db_ready = wait_for_db(max_retries=10, delay=2)
     if db_ready:
@@ -27,6 +28,16 @@ async def lifespan(app: FastAPI):
         inspector = inspect(engine)
         tables = inspector.get_table_names()
         logger.info(f"Database initialized with {len(tables)} tables: {tables}")
+
+        # Automatically seed realistic initial data if database is empty
+        db = SessionLocal()
+        try:
+            seed_result = seed_initial_data(db, force=False)
+            logger.info(f"Seed initialization: {seed_result}")
+        except Exception as e:
+            logger.error(f"Error during automatic database seeding: {e}")
+        finally:
+            db.close()
     else:
         logger.warning("Database unavailable during lifespan startup.")
     yield
@@ -92,6 +103,47 @@ def list_database_tables():
             "tables": tables,
         }
     except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+        }
+
+
+@app.get("/db/stats", tags=["Database"])
+def get_database_statistics(db: Session = Depends(get_db)):
+    """Return entity count statistics in the database."""
+    return {
+        "facilities": db.query(models.Facility).count(),
+        "suppliers": db.query(models.Supplier).count(),
+        "ingredient_batches": db.query(models.IngredientBatch).count(),
+        "inspections_step1": db.query(models.InspectionStep1).count(),
+        "inspections_step2": db.query(models.InspectionStep2).count(),
+        "sample_lockers": db.query(models.SampleLocker).count(),
+        "incident_reports": db.query(models.IncidentReport).count(),
+    }
+
+
+@app.post("/db/seed", tags=["Database"])
+def trigger_database_seed(force: bool = Query(False, description="Xóa và nạp lại từ đầu"), db: Session = Depends(get_db)):
+    """API endpoint to trigger or reset realistic seed data for live demo."""
+    try:
+        result = seed_initial_data(db, force=force)
+        stats = {
+            "facilities": db.query(models.Facility).count(),
+            "suppliers": db.query(models.Supplier).count(),
+            "ingredient_batches": db.query(models.IngredientBatch).count(),
+            "inspections_step1": db.query(models.InspectionStep1).count(),
+            "inspections_step2": db.query(models.InspectionStep2).count(),
+            "sample_lockers": db.query(models.SampleLocker).count(),
+            "incident_reports": db.query(models.IncidentReport).count(),
+        }
+        return {
+            "action": "seed",
+            "result": result,
+            "current_stats": stats,
+        }
+    except Exception as e:
+        logger.error(f"Seeding failed: {e}")
         return {
             "status": "error",
             "message": str(e),

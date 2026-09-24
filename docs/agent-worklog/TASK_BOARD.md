@@ -13,8 +13,8 @@
 | **TASK-001** | **Khởi tạo Git Repo, License Apache-2.0, .gitignore, Cấu trúc thư mục & Task Board** | None | Orchestrator / Docs | **DONE** |
 | **TASK-002** | **Thiết lập Docker Compose đa dịch vụ (`db`, `backend`, `frontend`) & cấu hình mạng** | TASK-001 | DevOps / Architect | **DONE** |
 | **TASK-003** | **Xây dựng SQLAlchemy Models & Pydantic Schemas cho 6 thực thể miền an toàn** | TASK-002 | Backend Agent | **DONE** |
-| **TASK-004** | Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026 | TASK-003 | Backend / Data Agent | **READY** |
-| **TASK-005** | Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh) | TASK-004 | Backend Agent | BACKLOG |
+| **TASK-004** | **Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026** | TASK-003 | Backend / Data Agent | **DONE** |
+| **TASK-005** | Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh) | TASK-004 | Backend Agent | **READY** |
 | **TASK-006** | Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín) | TASK-005 | Backend Agent | BACKLOG |
 | **TASK-007** | Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop) | TASK-006 | Backend Agent | BACKLOG |
 | **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | BACKLOG |
@@ -74,5 +74,26 @@
   - `curl http://localhost:8000/db/tables`: Trả về 7 bảng đã tạo thành công trong PostgreSQL:
     `["suppliers", "ingredient_batches", "facilities", "inspections_step2", "sample_lockers", "incident_reports", "inspections_step1"]`.
   - `docker exec foodsafe_db psql -c "\dt"`: Kiểm chứng trực tiếp 7 bảng quan hệ tồn tại trong schema `public`.
+* **Kết quả:** Pass. Commit `7f4743e`.
+
+### TASK-004: Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026
+* **Owner:** Backend / Data Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Viết `backend/app/seed.py`: Định nghĩa hàm `seed_initial_data(db)` nạp đầy đủ:
+    + 4 cơ sở bếp ăn: Trường TH Lê Trọng Tấn, Bếp ăn KCN Phong Điền - Scavi Huế, Trường THCS An Khê (Gia Lai), Trường TH Chu Văn An.
+    + 5 nhà cung ứng: CP Food Hà Nội (hạng A), HTX Rau Vân Nội (VietGAP), Thủy hải sản Thuận An, Cơ sở bánh mì/patê Bin Bin (Gia Lai - Blacklisted vì vi khuẩn Salmonella), Gia cầm Việt Hưng.
+    + 5 lô nguyên liệu: Thịt gà CP, Thịt gà nguyên con Đan Phượng, Tôm thẻ rã đông, Patê gan nhiễm khuẩn Salmonella, Rau cải sạch.
+    + 3 phiếu kiểm thực Bước 1: 1 phiếu đạt chuẩn, 2 phiếu bị Poka-yoke chặn đứng do vi phạm nhiệt độ (11.2°C và 6.5°C).
+    + 1 phiếu kiểm thực Bước 2: Nấu chín gà hấp ở 84.5°C (vượt chuẩn an toàn 75°C).
+    + 2 tủ lưu mẫu Bước 3: Đang khóa đếm ngược 24h và tủ phục vụ điều tra dịch tễ.
+    + 1 báo cáo sự cố dịch tễ: 180 ca ngộ độc tại Scavi Huế sẵn sàng cho AI truy vết.
+  - Viết script CLI `scripts/seed_db.py` hỗ trợ nạp dữ liệu từ dòng lệnh (`--force`).
+  - Cập nhật `backend/app/main.py`: Tự động nạp dữ liệu khi hệ thống boot lần đầu và cung cấp endpoint `POST /db/seed` + `GET /db/stats`.
+* **Kết quả kiểm thử:**
+  - `curl http://localhost:8000/db/stats`: Trả về số lượng bản ghi:
+    `{"facilities":4, "suppliers":5, "ingredient_batches":5, "inspections_step1":3, "inspections_step2":1, "sample_lockers":2, "incident_reports":1}`.
+  - `docker exec foodsafe_db psql -c "SELECT ..."`: Xác minh chính xác các bản ghi với đầy đủ thông tin thực tế.
+
 
 
