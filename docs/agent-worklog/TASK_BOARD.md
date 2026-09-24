@@ -14,8 +14,8 @@
 | **TASK-002** | **Thiết lập Docker Compose đa dịch vụ (`db`, `backend`, `frontend`) & cấu hình mạng** | TASK-001 | DevOps / Architect | **DONE** |
 | **TASK-003** | **Xây dựng SQLAlchemy Models & Pydantic Schemas cho 6 thực thể miền an toàn** | TASK-002 | Backend Agent | **DONE** |
 | **TASK-004** | **Viết script nạp dữ liệu thực tế (Realistic Seed Data) từ vụ án tháng 9/2026** | TASK-003 | Backend / Data Agent | **DONE** |
-| **TASK-005** | Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh) | TASK-004 | Backend Agent | **READY** |
-| **TASK-006** | Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín) | TASK-005 | Backend Agent | BACKLOG |
+| **TASK-005** | **Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh)** | TASK-004 | Backend Agent | **DONE** |
+| **TASK-006** | Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín) | TASK-005 | Backend Agent | **READY** |
 | **TASK-007** | Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop) | TASK-006 | Backend Agent | BACKLOG |
 | **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | BACKLOG |
 | **TASK-009** | Tích hợp Local RAG tra cứu tiêu chuẩn an toàn vi sinh Bộ Y tế (QCVN) | TASK-008 | AI / Agentic Agent | BACKLOG |
@@ -94,6 +94,27 @@
   - `curl http://localhost:8000/db/stats`: Trả về số lượng bản ghi:
     `{"facilities":4, "suppliers":5, "ingredient_batches":5, "inspections_step1":3, "inspections_step2":1, "sample_lockers":2, "incident_reports":1}`.
   - `docker exec foodsafe_db psql -c "SELECT ..."`: Xác minh chính xác các bản ghi với đầy đủ thông tin thực tế.
+* **Kết quả:** Pass. Commit `30bec9c`.
+
+### TASK-005: Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh)
+* **Owner:** Backend Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Viết `backend/app/core/poka_yoke.py`: Xây dựng `PokaYokeEngine` với 5 rào chắn bảo vệ nghiêm ngặt:
+    1. Rào chắn nhà cung ứng cấm (Blacklisted Supplier)
+    2. Rào chắn hạn sử dụng (Expiry Date Guard)
+    3. Rào chắn nhiệt độ chuỗi lạnh bảo quản thực phẩm (Cold-chain Temperature Guard: <= 4°C với đồ tươi, <= -12°C với đồ đông lạnh)
+    4. Rào chắn tem nhãn & bao bì nguyên vẹn (Packaging Integrity Guard)
+    5. Rào chắn đánh giá cảm quan (Sensory Evaluation Guard)
+  - Viết `backend/app/routers/facilities.py`: API lấy danh sách và chi tiết bếp ăn trường học / KCN.
+  - Viết `backend/app/routers/suppliers.py`: API lấy danh sách và chi tiết nhà cung cấp.
+  - Viết `backend/app/routers/batches.py`: API lấy danh sách và chi tiết lô nguyên liệu.
+  - Viết `backend/app/routers/inspections_step1.py`: API xử lý Kiểm thực Bước 1, tự động bắt lỗi vi phạm và trả về HTTP 422 Unprocessable Entity kèm đối tượng `PokaYokeViolation`.
+* **Kết quả kiểm thử:**
+  - Test vi phạm Poka-yoke: Gửi request nhập thịt gà với nhiệt độ 13.5°C (> 4.0°C) -> **Backend trả về HTTP 422 Unprocessable Entity**, thông báo `POKA_YOKE_BLOCKED`, tự động cập nhật lô hàng thành `REJECTED` và lưu vết vi phạm vào database.
+  - Test đạt chuẩn: Gửi request nhập thịt gà nhiệt độ 2.0°C (<= 4.0°C) -> **Backend trả về HTTP 201 Created**, thông báo `APPROVED`.
+  - Database check: Cả 2 bản ghi (ID 4 và ID 5) được ghi nhận chính xác trong PostgreSQL.
+
 
 
 

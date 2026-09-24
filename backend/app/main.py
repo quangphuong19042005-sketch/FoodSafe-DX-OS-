@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from .database import engine, Base, SessionLocal, get_db, wait_for_db
 from . import models
 from .seed import seed_initial_data
+from .routers import facilities, suppliers, batches, inspections_step1
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("foodsafe.main")
@@ -64,6 +65,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API Routers
+app.include_router(facilities.router)
+app.include_router(suppliers.router)
+app.include_router(batches.router)
+app.include_router(inspections_step1.router)
 
 
 @app.get("/", tags=["General"])
