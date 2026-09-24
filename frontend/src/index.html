@@ -243,7 +243,7 @@
                                     <input type="text" id="step1-notes" placeholder="Kiểm tra cảm quan đạt chuẩn, không có mùi lạ..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
                                 </div>
 
-                                <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-900/30 flex items-center justify-center space-x-2">
+                                <button type="submit" id="btnStep1Submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold text-xs transition shadow-lg shadow-emerald-900/30 flex items-center justify-center space-x-2">
                                     <i class="fa-solid fa-file-circle-check text-sm"></i>
                                     <span>Phê Duyệt Nhập Kho Lô Hàng</span>
                                 </button>
@@ -280,17 +280,17 @@
                                 <!-- Test Presets Box -->
                                 <div class="p-4 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 space-y-2">
                                     <div class="flex items-center justify-between text-xs">
-                                        <span class="text-slate-400 font-bold"><i class="fa-solid fa-flask mr-1.5 text-amber-400"></i> Kịch bản thử nghiệm (Demo):</span>
-                                        <span class="text-[10px] text-slate-500">Bấm để tự điền</span>
+                                        <span class="text-slate-400 font-bold"><i class="fa-solid fa-flask mr-1.5 text-emerald-400"></i> Kịch bản thử nghiệm (Demo):</span>
+                                        <span class="text-[10px] text-slate-500 font-mono">1-Click chạy thử</span>
                                     </div>
                                     <div class="grid grid-cols-2 gap-2 pt-1">
-                                        <button type="button" onclick="presetStep1Violation()" class="py-2 px-2.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                        <button type="button" onclick="presetStep1Violation()" class="py-2 px-2.5 rounded-lg bg-rose-500/10 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-semibold transition flex items-center justify-center space-x-1.5 active:scale-95">
                                             <i class="fa-solid fa-triangle-exclamation text-xs"></i>
-                                            <span>13.5&deg;C (Chặn Lỗi)</span>
+                                            <span>13.5&deg;C (Chặn Lỗi Chuỗi Lạnh)</span>
                                         </button>
-                                        <button type="button" onclick="presetStep1Pass()" class="py-2 px-2.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                        <button type="button" onclick="presetStep1Pass()" class="py-2 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-semibold transition flex items-center justify-center space-x-1.5 active:scale-95">
                                             <i class="fa-solid fa-check text-xs"></i>
-                                            <span>2.2&deg;C (Đạt Chuẩn)</span>
+                                            <span>2.2&deg;C (Đạt Chuẩn Tươi)</span>
                                         </button>
                                     </div>
                                 </div>
@@ -328,11 +328,44 @@
                                 </div>
 
                                 <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block text-xs font-bold text-slate-300">Lô Nguyên Liệu Cấu Thành:</label>
-                                        <span class="text-[10px] text-slate-500">Giữ Ctrl/Cmd để chọn nhiều lô</span>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <div class="flex items-center space-x-2">
+                                            <label class="block text-xs font-bold text-slate-300">Lô Nguyên Liệu Cấu Thành:</label>
+                                            <span id="step2-batches-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                                Đã chọn: <span id="step2-selected-count">0</span>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center space-x-2 text-[11px]">
+                                            <button type="button" onclick="selectApprovedBatchesStep2()" class="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition">
+                                                Chọn lô đạt chuẩn
+                                            </button>
+                                            <span class="text-slate-600">|</span>
+                                            <button type="button" onclick="clearSelectedBatchesStep2()" class="text-slate-400 hover:text-slate-300 transition">
+                                                Bỏ chọn
+                                            </button>
+                                        </div>
                                     </div>
-                                    <select id="step2-batches" multiple size="3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"></select>
+
+                                    <!-- Hidden native select for backward-compatibility with any scripts -->
+                                    <select id="step2-batches" multiple class="hidden"></select>
+
+                                    <!-- Touch-Friendly Custom Checkbox Selector Container -->
+                                    <div id="step2-batches-list" class="max-h-44 overflow-y-auto rounded-xl border border-slate-700 bg-slate-950 divide-y divide-slate-800/80 pr-0.5">
+                                        <div class="p-3 text-center text-xs text-slate-500">
+                                            <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang nạp danh sách lô nguyên liệu...
+                                        </div>
+                                    </div>
+
+                                    <!-- Live Poka-Yoke Warning if any REJECTED batch is selected -->
+                                    <div id="step2-rejected-warning" class="hidden mt-2 p-2.5 rounded-xl bg-rose-950/60 border border-rose-500/50 text-rose-300 text-xs flex items-start space-x-2 animate-pulse">
+                                        <i class="fa-solid fa-triangle-exclamation text-rose-400 mt-0.5 text-sm flex-shrink-0"></i>
+                                        <div>
+                                            <strong class="font-bold text-rose-300">Cảnh báo An toàn Thực phẩm:</strong>
+                                            <span class="text-[11px] block mt-0.5 leading-relaxed">
+                                                Bạn đang chọn nguyên liệu <strong class="underline">BỊ TỪ CHỐI</strong> ở Bước 1. Rào chắn Poka-Yoke sẽ kích hoạt và chặn xuất ăn khi bạn gửi form này!
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -360,7 +393,7 @@
                                     </select>
                                 </div>
 
-                                <button type="submit" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition shadow-lg shadow-amber-900/30 flex items-center justify-center space-x-2">
+                                <button type="submit" id="btnStep2Submit" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 active:scale-[0.99] text-white font-bold text-xs transition shadow-lg shadow-amber-900/30 flex items-center justify-center space-x-2">
                                     <i class="fa-solid fa-fire-burner text-sm"></i>
                                     <span>Kiểm Định Nhiệt Độ Nấu Chín</span>
                                 </button>
@@ -398,14 +431,18 @@
                                 <div class="p-4 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 space-y-2">
                                     <div class="flex items-center justify-between text-xs">
                                         <span class="text-slate-400 font-bold"><i class="fa-solid fa-flask mr-1.5 text-amber-400"></i> Kịch bản thử nghiệm (Demo):</span>
-                                        <span class="text-[10px] text-slate-500">Bấm để tự điền</span>
+                                        <span class="text-[10px] text-slate-500 font-mono">1-Click chạy thử</span>
                                     </div>
-                                    <div class="grid grid-cols-2 gap-2 pt-1">
-                                        <button type="button" onclick="presetStep2Undercooked()" class="py-2 px-2.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
-                                            <i class="fa-solid fa-triangle-exclamation text-xs"></i>
-                                            <span>61.5&deg;C (Chặn Lỗi)</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                                        <button type="button" onclick="presetStep2Undercooked()" class="py-2 px-2 rounded-lg bg-rose-500/10 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-semibold transition flex items-center justify-center space-x-1 active:scale-95">
+                                            <i class="fa-solid fa-temperature-low text-xs"></i>
+                                            <span>61.5&deg;C (Chưa Chín)</span>
                                         </button>
-                                        <button type="button" onclick="presetStep2Pass()" class="py-2 px-2.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                        <button type="button" onclick="presetStep2Contaminated()" class="py-2 px-2 rounded-lg bg-purple-500/10 text-purple-300 hover:bg-purple-500/25 border border-purple-500/30 text-xs font-semibold transition flex items-center justify-center space-x-1 active:scale-95">
+                                            <i class="fa-solid fa-ban text-xs"></i>
+                                            <span>Lô Bị Từ Chối</span>
+                                        </button>
+                                        <button type="button" onclick="presetStep2Pass()" class="py-2 px-2 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-semibold transition flex items-center justify-center space-x-1 active:scale-95">
                                             <i class="fa-solid fa-check text-xs"></i>
                                             <span>86.0&deg;C (Đạt Chuẩn)</span>
                                         </button>
