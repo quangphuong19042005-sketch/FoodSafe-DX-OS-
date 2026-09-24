@@ -348,8 +348,23 @@
                 </div>
             </div>
 
+            <!-- Trace Standby / Empty State -->
+            <div id="traceEmptyState" class="p-12 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/30">
+                <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400 text-2xl">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <h3 class="text-base font-bold text-white mb-2">Hệ Thống Sẵn Sàng Truy Vết Dịch Tễ</h3>
+                <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed mb-4">
+                    Nhấp vào nút <strong class="text-rose-400 font-semibold">"Kích Hoạt Truy Vết Thần Tốc"</strong> ở trên để khởi chạy thuật toán BFS tìm nguyên nhân gốc rễ, khoanh vùng mầm bệnh và phát lệnh phong tỏa liên cơ sở.
+                </p>
+                <div class="inline-flex items-center space-x-2 text-[11px] text-slate-500 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>BFS Engine Ready &bull; Offline Deterministic</span>
+                </div>
+            </div>
+
             <!-- Trace Results View -->
-            <div id="traceResultsPanel" class="space-y-6">
+            <div id="traceResultsPanel" class="hidden space-y-6">
 
                 <!-- 3 Analysis Cards Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -700,6 +715,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- Global In-App Toast Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none w-80 max-w-[90vw]"></div>
 
     <!-- Scripts -->
     <script src="graph.js"></script>
