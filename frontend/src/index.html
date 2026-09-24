@@ -141,175 +141,335 @@
                 </div>
             </div>
 
-            <!-- 3 Step Tabs / Panels -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                <!-- BƯỚC 1: GIAO NHẬN NGUYÊN LIỆU -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-28 h-28 bg-emerald-500/5 rounded-full blur-2xl"></div>
+            <!-- Stepper Progress Header -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800">
                     <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">
-                                Bước 1: Giao Nhận
-                            </span>
-                            <span class="text-xs text-slate-500 font-mono">Cold-Chain Guard</span>
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Tiến trình kiểm thực</span>
+                        <p class="text-[11px] text-slate-400">Chọn từng bước để nhập liệu tập trung hoặc bấm nút xem cả 3 bước</p>
+                    </div>
+                    <button type="button" id="toggleViewBtn" onclick="toggleAllStepsView()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center self-start sm:self-auto">
+                        <i class="fa-solid fa-table-columns mr-1.5 text-slate-400"></i>
+                        <span>Xem cả 3 bước</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                    <!-- Step 1 Button -->
+                    <button type="button" onclick="switchInspectionStep(1)" id="step-nav-1" class="step-nav-btn flex items-center space-x-2 sm:space-x-3 p-2.5 sm:p-3 rounded-xl border transition text-left bg-emerald-500/10 border-emerald-500/40 text-white shadow-lg">
+                        <div class="step-num-badge w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm bg-emerald-500 text-white flex-shrink-0">
+                            1
                         </div>
-                        <h3 class="text-base font-bold text-white mb-2">Kiểm tra Nhiệt độ Chuỗi lạnh</h3>
-                        <p class="text-xs text-slate-400 mb-4">
-                            Đo nhiệt độ giao hàng thực tế. Thực phẩm tươi sống phải &le; 4.0&deg;C, đông lạnh &le; -12.0&deg;C.
-                        </p>
+                        <div class="min-w-0">
+                            <div class="text-[10px] text-emerald-400 font-mono uppercase tracking-wider hidden sm:block">05:00 Sáng</div>
+                            <div class="text-xs sm:text-sm font-bold truncate">Bước 1: Giao Nhận</div>
+                            <div class="text-[10px] text-slate-400 truncate hidden md:block">Chuỗi lạnh &le; 4.0&deg;C</div>
+                        </div>
+                    </button>
 
-                        <form id="step1Form" onsubmit="handleStep1Submit(event)" class="space-y-3">
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Lô Hàng Nhập Kho:</label>
-                                <select id="step1-batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"></select>
-                            </div>
+                    <!-- Step 2 Button -->
+                    <button type="button" onclick="switchInspectionStep(2)" id="step-nav-2" class="step-nav-btn flex items-center space-x-2 sm:space-x-3 p-2.5 sm:p-3 rounded-xl border transition text-left bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200">
+                        <div class="step-num-badge w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm bg-slate-800 text-slate-400 flex-shrink-0">
+                            2
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-[10px] text-slate-500 font-mono uppercase tracking-wider hidden sm:block">10:00 Trưa</div>
+                            <div class="text-xs sm:text-sm font-bold truncate">Bước 2: Chế Biến</div>
+                            <div class="text-[10px] text-slate-400 truncate hidden md:block">Nhiệt độ tâm &ge; 75&deg;C</div>
+                        </div>
+                    </button>
 
-                            <div class="grid grid-cols-2 gap-3">
+                    <!-- Step 3 Button -->
+                    <button type="button" onclick="switchInspectionStep(3)" id="step-nav-3" class="step-nav-btn flex items-center space-x-2 sm:space-x-3 p-2.5 sm:p-3 rounded-xl border transition text-left bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200">
+                        <div class="step-num-badge w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm bg-slate-800 text-slate-400 flex-shrink-0">
+                            3
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-[10px] text-slate-500 font-mono uppercase tracking-wider hidden sm:block">11:00 Trưa</div>
+                            <div class="text-xs sm:text-sm font-bold truncate">Bước 3: Lưu Mẫu 24H</div>
+                            <div class="text-[10px] text-slate-400 truncate hidden md:block">Niêm phong tủ điện tử</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inspection Panels Container -->
+            <div id="inspectionPanelsContainer" class="space-y-6">
+
+                <!-- BƯỚC 1 PANEL: GIAO NHẬN NGUYÊN LIỆU -->
+                <div id="step1-panel" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Form Area (7 cols) -->
+                        <div class="lg:col-span-7 space-y-4">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Nhiệt Độ Đo (&deg;C):</label>
-                                    <input type="number" id="step1-temp" step="0.1" value="2.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
+                                    <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">
+                                        Bước 1: Giao Nhận Thực Phẩm
+                                    </span>
+                                    <h3 class="text-base font-bold text-white mt-1">Kiểm Soát Nhiệt Độ Chuỗi Lạnh Đầu Vào</h3>
                                 </div>
+                                <span class="text-xs text-slate-500 font-mono hidden sm:inline">QĐ 1246/QĐ-BYT</span>
+                            </div>
+
+                            <form id="step1Form" onsubmit="handleStep1Submit(event)" class="space-y-3.5">
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Cảm Quan:</label>
-                                    <select id="step1-sensory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
-                                        <option value="FRESH">Tươi mới (FRESH)</option>
-                                        <option value="OFF_SMELL">Bốc mùi lạ (OFF_SMELL)</option>
-                                        <option value="DISCOLORED">Biến màu (DISCOLORED)</option>
-                                        <option value="SLIMY">Nhầy nhớt (SLIMY)</option>
-                                    </select>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1">Lô Hàng Nhập Kho:</label>
+                                    <select id="step1-batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"></select>
                                 </div>
-                            </div>
 
-                            <div class="flex items-center space-x-2 pt-1">
-                                <input type="checkbox" id="step1-packaging" checked class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0">
-                                <label for="step1-packaging" class="text-xs text-slate-300">Bao bì & tem niêm phong nguyên vẹn</label>
-                            </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 mb-1">Nhiệt Độ Đo Thực Tế (&deg;C):</label>
+                                        <input type="number" id="step1-temp" step="0.1" value="2.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 mb-1">Đánh Giá Cảm Quan:</label>
+                                        <select id="step1-sensory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
+                                            <option value="FRESH">Tươi mới (FRESH)</option>
+                                            <option value="OFF_SMELL">Bốc mùi lạ (OFF_SMELL)</option>
+                                            <option value="DISCOLORED">Biến màu (DISCOLORED)</option>
+                                            <option value="SLIMY">Nhầy nhớt (SLIMY)</option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Ghi Chú:</label>
-                                <input type="text" id="step1-notes" placeholder="Kiểm tra cảm quan đạt chuẩn..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
-                            </div>
+                                <div class="flex items-center space-x-2.5 p-3 rounded-lg bg-slate-950/70 border border-slate-800">
+                                    <input type="checkbox" id="step1-packaging" checked class="rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-0">
+                                    <label for="step1-packaging" class="text-xs text-slate-300 cursor-pointer">Bao bì, tem niêm phong và truy xuất QR nguyên vẹn</label>
+                                </div>
 
-                            <button type="submit" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-900/30 flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-file-circle-check"></i>
-                                <span>Phê Duyệt Nhập Kho</span>
-                            </button>
-                        </form>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1">Ghi Chú Kiểm Thực:</label>
+                                    <input type="text" id="step1-notes" placeholder="Kiểm tra cảm quan đạt chuẩn, không có mùi lạ..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
+                                </div>
 
-                        <!-- Quick Test Presets -->
-                        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                            <span class="text-slate-500 font-medium">Thử nghiệm Poka-yoke:</span>
-                            <div class="flex space-x-2">
-                                <button onclick="presetStep1Violation()" class="px-2 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-[11px] font-bold transition">
-                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 13.5&deg;C (Chặn)
+                                <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-900/30 flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-file-circle-check text-sm"></i>
+                                    <span>Phê Duyệt Nhập Kho Lô Hàng</span>
                                 </button>
-                                <button onclick="presetStep1Pass()" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold transition">
-                                    <i class="fa-solid fa-check mr-1"></i> 2.2&deg;C (Đạt)
+                            </form>
+
+                            <!-- Result Alert Box -->
+                            <div id="step1-result-alert" class="hidden"></div>
+                        </div>
+
+                        <!-- Guidance & Preset Area (5 cols) -->
+                        <div class="lg:col-span-5 space-y-4 lg:border-l lg:border-slate-800 lg:pl-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                                    <div class="flex items-center space-x-2 text-xs font-bold text-emerald-400">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                        <span>Ranh Giới An Toàn Chuỗi Lạnh</span>
+                                    </div>
+                                    <ul class="text-xs text-slate-300 space-y-1.5 leading-relaxed">
+                                        <li class="flex items-center justify-between">
+                                            <span>Thực phẩm tươi sống:</span>
+                                            <strong class="font-mono text-emerald-400">&le; 4.0&deg;C</strong>
+                                        </li>
+                                        <li class="flex items-center justify-between">
+                                            <span>Thực phẩm đông lạnh:</span>
+                                            <strong class="font-mono text-emerald-400">&le; -12.0&deg;C</strong>
+                                        </li>
+                                        <li class="flex items-center justify-between text-rose-400 pt-1 border-t border-slate-800">
+                                            <span>Vùng vi phạm nguy hiểm:</span>
+                                            <strong class="font-mono">&gt; 4.0&deg;C (Tự động chặn)</strong>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Test Presets Box -->
+                                <div class="p-4 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 space-y-2">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-400 font-bold"><i class="fa-solid fa-flask mr-1.5 text-amber-400"></i> Kịch bản thử nghiệm (Demo):</span>
+                                        <span class="text-[10px] text-slate-500">Bấm để tự điền</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 pt-1">
+                                        <button type="button" onclick="presetStep1Violation()" class="py-2 px-2.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                            <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                                            <span>13.5&deg;C (Chặn Lỗi)</span>
+                                        </button>
+                                        <button type="button" onclick="presetStep1Pass()" class="py-2 px-2.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                            <i class="fa-solid fa-check text-xs"></i>
+                                            <span>2.2&deg;C (Đạt Chuẩn)</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 flex justify-end">
+                                <button type="button" onclick="switchInspectionStep(2)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700 flex items-center space-x-1.5">
+                                    <span>Xem Bước 2 (Chế biến)</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Result Alert Box -->
-                        <div id="step1-result-alert" class="hidden"></div>
                     </div>
                 </div>
 
-                <!-- BƯỚC 2: CHẾ BIẾN & NHIỆT ĐỘ TÂM -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl"></div>
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold uppercase tracking-wider">
-                                Bước 2: Chế Biến
-                            </span>
-                            <span class="text-xs text-slate-500 font-mono">Core-Temp Guard</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-2">Đo Nhiệt Độ Tâm Nấu Chín</h3>
-                        <p class="text-xs text-slate-400 mb-4">
-                            Nhiệt độ tâm món ăn phải &ge; 75.0&deg;C để tiêu diệt Salmonella theo chuẩn WHO Codex. Chặn dùng nguyên liệu lỗi từ Bước 1.
-                        </p>
-
-                        <form id="step2Form" onsubmit="handleStep2Submit(event)" class="space-y-3">
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Tên Món Ăn Bán Trú:</label>
-                                <input type="text" id="step2-meal-name" value="Thịt gà xào nấm & súp gà ngô non" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
-                            </div>
-
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Chọn Lô Nguyên Liệu Cấu Thành:</label>
-                                <select id="step2-batches" multiple size="2" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"></select>
-                                <span class="text-[10px] text-slate-500">Giữ Ctrl / Command để chọn nhiều lô.</span>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
+                <!-- BƯỚC 2 PANEL: CHẾ BIẾN & NHIỆT ĐỘ TÂM -->
+                <div id="step2-panel" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Form Area (7 cols) -->
+                        <div class="lg:col-span-7 space-y-4">
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Phương Pháp:</label>
-                                    <select id="step2-method" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
-                                        <option value="BOILING">Luộc / Hầm</option>
-                                        <option value="STEAMING">Hấp cách thủy</option>
-                                        <option value="STIR_FRY">Xào lăn</option>
-                                        <option value="FRYING">Chiên / Rán</option>
+                                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold uppercase tracking-wider">
+                                        Bước 2: Chế Biến Món Ăn
+                                    </span>
+                                    <h3 class="text-base font-bold text-white mt-1">Kiểm Định Nhiệt Độ Tâm Nấu Chín</h3>
+                                </div>
+                                <span class="text-xs text-slate-500 font-mono hidden sm:inline">WHO Codex Standard</span>
+                            </div>
+
+                            <form id="step2Form" onsubmit="handleStep2Submit(event)" class="space-y-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1">Tên Món Ăn Bán Trú:</label>
+                                    <input type="text" id="step2-meal-name" value="Thịt gà xào nấm & súp gà ngô non" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block text-xs font-bold text-slate-300">Lô Nguyên Liệu Cấu Thành:</label>
+                                        <span class="text-[10px] text-slate-500">Giữ Ctrl/Cmd để chọn nhiều lô</span>
+                                    </div>
+                                    <select id="step2-batches" multiple size="3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"></select>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 mb-1">Phương Pháp Chế Biến:</label>
+                                        <select id="step2-method" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                                            <option value="BOILING">Luộc / Hầm</option>
+                                            <option value="STEAMING">Hấp cách thủy</option>
+                                            <option value="STIR_FRY">Xào lăn</option>
+                                            <option value="FRYING">Chiên / Rán</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 mb-1">Nhiệt Độ Tâm Đo Được (&deg;C):</label>
+                                        <input type="number" id="step2-core-temp" step="0.1" value="82.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none font-mono">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-300 mb-1">Đánh Giá Độ Chín Thấu Cảm Quan:</label>
+                                    <select id="step2-sensory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                                        <option value="COOKED_THOROUGHLY">Chín thấu hoàn toàn (COOKED_THOROUGHLY)</option>
+                                        <option value="UNDERCOOKED_RAW_INSIDE">Còn sống hoặc tái bên trong (RAW_INSIDE)</option>
+                                        <option value="BURNT">Cháy khét (BURNT)</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Nhiệt Độ Tâm (&deg;C):</label>
-                                    <input type="number" id="step2-core-temp" step="0.1" value="82.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+
+                                <button type="submit" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition shadow-lg shadow-amber-900/30 flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-fire-burner text-sm"></i>
+                                    <span>Kiểm Định Nhiệt Độ Nấu Chín</span>
+                                </button>
+                            </form>
+
+                            <!-- Result Alert Box -->
+                            <div id="step2-result-alert" class="hidden"></div>
+                        </div>
+
+                        <!-- Guidance & Preset Area (5 cols) -->
+                        <div class="lg:col-span-5 space-y-4 lg:border-l lg:border-slate-800 lg:pl-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                                    <div class="flex items-center space-x-2 text-xs font-bold text-amber-400">
+                                        <i class="fa-solid fa-temperature-arrow-up"></i>
+                                        <span>Chuẩn Diệt Khuẩn Salmonella (WHO)</span>
+                                    </div>
+                                    <ul class="text-xs text-slate-300 space-y-1.5 leading-relaxed">
+                                        <li class="flex items-center justify-between">
+                                            <span>Nhiệt độ tâm yêu cầu:</span>
+                                            <strong class="font-mono text-emerald-400">&ge; 75.0&deg;C (15s)</strong>
+                                        </li>
+                                        <li class="flex items-center justify-between">
+                                            <span>Rào chắn nguyên liệu:</span>
+                                            <span class="text-slate-400">Chặn lô hàng bị từ chối B1</span>
+                                        </li>
+                                        <li class="flex items-center justify-between text-rose-400 pt-1 border-t border-slate-800">
+                                            <span>Vi phạm nhiệt độ tâm:</span>
+                                            <strong class="font-mono">&lt; 70.0&deg;C (Chặn xuất ăn)</strong>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Test Presets Box -->
+                                <div class="p-4 rounded-xl bg-slate-950/60 border border-dashed border-slate-800 space-y-2">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-400 font-bold"><i class="fa-solid fa-flask mr-1.5 text-amber-400"></i> Kịch bản thử nghiệm (Demo):</span>
+                                        <span class="text-[10px] text-slate-500">Bấm để tự điền</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 pt-1">
+                                        <button type="button" onclick="presetStep2Undercooked()" class="py-2 px-2.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                            <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                                            <span>61.5&deg;C (Chặn Lỗi)</span>
+                                        </button>
+                                        <button type="button" onclick="presetStep2Pass()" class="py-2 px-2.5 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                                            <i class="fa-solid fa-check text-xs"></i>
+                                            <span>86.0&deg;C (Đạt Chuẩn)</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Đánh Giá Độ Chín Thấu:</label>
-                                <select id="step2-sensory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
-                                    <option value="COOKED_THOROUGHLY">Chín thấu hoàn toàn (COOKED_THOROUGHLY)</option>
-                                    <option value="UNDERCOOKED_RAW_INSIDE">Còn sống hoặc tái bên trong (RAW_INSIDE)</option>
-                                    <option value="BURNT">Cháy khét (BURNT)</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" class="w-full py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition shadow-lg shadow-amber-900/30 flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-fire-burner"></i>
-                                <span>Kiểm Định Nhiệt Độ Nấu Chín</span>
-                            </button>
-                        </form>
-
-                        <!-- Quick Test Presets -->
-                        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                            <span class="text-slate-500 font-medium">Thử nghiệm:</span>
-                            <div class="flex space-x-2">
-                                <button onclick="presetStep2Undercooked()" class="px-2 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-[11px] font-bold transition">
-                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 61.5&deg;C (Chặn)
+                            <div class="pt-2 flex items-center justify-between">
+                                <button type="button" onclick="switchInspectionStep(1)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700 flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                                    <span>Về Bước 1</span>
                                 </button>
-                                <button onclick="presetStep2Pass()" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold transition">
-                                    <i class="fa-solid fa-check mr-1"></i> 86.0&deg;C (Đạt)
+                                <button type="button" onclick="switchInspectionStep(3)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700 flex items-center space-x-1.5">
+                                    <span>Sang Bước 3 (Tủ mẫu)</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Result Alert Box -->
-                        <div id="step2-result-alert" class="hidden"></div>
                     </div>
                 </div>
 
-                <!-- BƯỚC 3: LƯU MẪU 24H & HUMAN-IN-THE-LOOP -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-28 h-28 bg-purple-500/5 rounded-full blur-2xl"></div>
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-bold uppercase tracking-wider">
-                                Bước 3: Lưu Mẫu 24H
-                            </span>
-                            <span class="text-xs text-slate-500 font-mono">HITL Padlock</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-2">Tủ Lưu Mẫu Điện Tử 24 Giờ</h3>
-                        <p class="text-xs text-slate-400 mb-4">
-                            Lưu tối thiểu 100g thức ăn trong 24 giờ ở 2&deg;C - 8&deg;C. Khóa điện tử tự động chặn mở sớm; cần quyền phê duyệt khẩn cấp (Human-in-the-loop).
-                        </p>
+                <!-- BƯỚC 3 PANEL: LƯU MẪU 24H & HITL -->
+                <div id="step3-panel" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Overview & Regulations (4 cols) -->
+                        <div class="lg:col-span-4 space-y-4">
+                            <div class="pb-3 border-b border-slate-800">
+                                <span class="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-bold uppercase tracking-wider">
+                                    Bước 3: Lưu Mẫu 24 Giờ
+                                </span>
+                                <h3 class="text-base font-bold text-white mt-1">Tủ Lưu Mẫu Điện Tử Tự Động Khóa</h3>
+                            </div>
 
-                        <!-- Lockers Grid -->
-                        <div id="lockersGrid" class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
-                            <div class="text-center text-slate-500 text-xs py-8">
-                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang nạp danh sách tủ lưu mẫu...
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Lưu tối thiểu <strong>100g thức ăn</strong> trong hộp tiệt trùng ở nhiệt độ <strong>2&deg;C - 8&deg;C</strong> đủ 24 giờ. Rào chắn Poka-yoke tự động khóa chốt, cấm mở sớm để chống tiêu hủy mẫu vật.
+                            </p>
+
+                            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                                <div class="font-bold text-amber-400 flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                    <span>Phê Duyệt Ngoại Lệ (HITL)</span>
+                                </div>
+                                <p class="text-slate-400 leading-relaxed">
+                                    Trường hợp có đoàn Thanh tra Y tế đột xuất hoặc cấp cứu dịch tễ, hệ thống cho phép Cán bộ y tế mở khẩn cấp với mã Passcode chuyên dụng.
+                                </p>
+                            </div>
+
+                            <button type="button" onclick="switchInspectionStep(2)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                                <span>Về Bước 2 (Chế biến)</span>
+                            </button>
+                        </div>
+
+                        <!-- Lockers Grid (8 cols) -->
+                        <div class="lg:col-span-8 lg:border-l lg:border-slate-800 lg:pl-6 space-y-3">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Danh Sách Tủ Lưu Mẫu Cơ Sở</span>
+                                <span class="text-[11px] text-slate-500 font-mono">Đồng bộ tự động</span>
+                            </div>
+
+                            <div id="lockersGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[480px] overflow-y-auto pr-1">
+                                <div class="col-span-full text-center text-slate-500 text-xs py-8">
+                                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang nạp danh sách tủ lưu mẫu...
+                                </div>
                             </div>
                         </div>
                     </div>
