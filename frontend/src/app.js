@@ -206,13 +206,18 @@ async function handleStep1Submit(e) {
         `;
         alertBox.classList.remove('hidden');
     } else if (res.ok) {
+        showToast("Phê duyệt nhập kho thành công! Đã cấp phép chuyển sang Bước 2.", "success");
         alertBox.className = "mt-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs";
         alertBox.innerHTML = `
             <div class="flex items-center space-x-2 font-bold text-sm text-emerald-400 mb-1">
                 <i class="fa-solid fa-circle-check text-lg"></i>
                 <span>ĐẠT CHUẨN! ĐÃ DUYỆT NHẬP KHO THỰC PHẨM</span>
             </div>
-            <p>Phiếu kiểm thực số #${res.data.id} đã lưu trữ thành công. Lô hàng đủ điều kiện chuyển sang Bước 2 (Sơ chế).</p>
+            <p class="mb-3 text-slate-300">Phiếu kiểm thực số #${res.data.id} đã lưu trữ thành công. Lô hàng đủ điều kiện chuyển sang Bước 2 (Chế biến).</p>
+            <button type="button" onclick="switchInspectionStep(2)" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition inline-flex items-center space-x-1.5 shadow-md">
+                <span>Chuyển Sang Bước 2: Chế Biến</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
         `;
         alertBox.classList.remove('hidden');
     }
@@ -274,13 +279,18 @@ async function handleStep2Submit(e) {
         `;
         alertBox.classList.remove('hidden');
     } else if (res.ok) {
+        showToast(`Món ăn '${res.data.meal_name}' đạt chuẩn nấu chín! Sẵn sàng lưu mẫu.`, "success");
         alertBox.className = "mt-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs";
         alertBox.innerHTML = `
             <div class="flex items-center space-x-2 font-bold text-sm text-emerald-400 mb-1">
                 <i class="fa-solid fa-circle-check text-lg"></i>
-                <span>ĐẠT CHUẨN NẤU CHÍN HOÀN TOÀN! (Nhiệt độ tâm ${res.data.core_temp}°C >= 75.0°C)</span>
+                <span>ĐẠT CHUẨN NẤU CHÍN HOÀN TOÀN! (Nhiệt độ tâm ${res.data.core_temp}°C &ge; 75.0°C)</span>
             </div>
-            <p>Món ăn '${res.data.meal_name}' đã được phê duyệt. Vui lòng tiến hành Lưu mẫu thức ăn 24H tại Bước 3.</p>
+            <p class="mb-3 text-slate-300">Món ăn '${res.data.meal_name}' đã được phê duyệt. Vui lòng tiến hành Lưu mẫu thức ăn 24H tại Bước 3.</p>
+            <button type="button" onclick="switchInspectionStep(3)" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition inline-flex items-center space-x-1.5 shadow-md">
+                <span>Chuyển Sang Bước 3: Tủ Lưu Mẫu</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
         `;
         alertBox.classList.remove('hidden');
     }
@@ -632,8 +642,79 @@ function showToast(message, type = 'info', duration = 4000) {
     }, duration);
 }
 
+// ==========================================
+// STEPPER WORKFLOW CONTROLS
+// ==========================================
+let currentInspectionStep = 1;
+let isAllStepsView = false;
+
+function switchInspectionStep(stepNumber) {
+    currentInspectionStep = stepNumber;
+    isAllStepsView = false;
+    updateInspectionStepUI();
+}
+
+function toggleAllStepsView() {
+    isAllStepsView = !isAllStepsView;
+    updateInspectionStepUI();
+}
+
+function updateInspectionStepUI() {
+    const panels = [
+        document.getElementById('step1-panel'),
+        document.getElementById('step2-panel'),
+        document.getElementById('step3-panel')
+    ];
+    const navBtns = [
+        document.getElementById('step-nav-1'),
+        document.getElementById('step-nav-2'),
+        document.getElementById('step-nav-3')
+    ];
+    const container = document.getElementById('inspectionPanelsContainer');
+    const toggleBtn = document.getElementById('toggleViewBtn');
+
+    if (isAllStepsView) {
+        if (container) {
+            container.className = "grid grid-cols-1 lg:grid-cols-3 gap-6";
+        }
+        panels.forEach(p => {
+            if (p) p.classList.remove('hidden');
+        });
+        navBtns.forEach(btn => {
+            if (btn) btn.className = "step-nav-btn flex items-center space-x-2 sm:space-x-3 p-2.5 sm:p-3 rounded-xl border transition text-left bg-slate-950/60 border-slate-800 text-slate-400";
+        });
+        if (toggleBtn) toggleBtn.innerHTML = `<i class="fa-solid fa-compress mr-1.5 text-emerald-400"></i> Xem 1 bước tập trung`;
+    } else {
+        if (container) {
+            container.className = "space-y-6";
+        }
+        panels.forEach((p, idx) => {
+            if (!p) return;
+            if (idx === currentInspectionStep - 1) {
+                p.classList.remove('hidden');
+            } else {
+                p.classList.add('hidden');
+            }
+        });
+        navBtns.forEach((btn, idx) => {
+            if (!btn) return;
+            const numBadge = btn.querySelector('.step-num-badge');
+            if (idx === currentInspectionStep - 1) {
+                btn.className = "step-nav-btn flex items-center space-x-2 sm:space-x-3 p-2.5 sm:p-3 rounded-xl border transition text-left bg-emerald-500/10 border-emerald-500/40 text-white shadow-lg";
+                if (numBadge) numBadge.className = "step-num-badge w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm bg-emerald-500 text-white flex-shrink-0";
+            } else {
+                btn.className = "step-nav-btn flex items-center space-x-2 sm:space-x-3 p-2.5 sm:p-3 rounded-xl border transition text-left bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200";
+                if (numBadge) numBadge.className = "step-num-badge w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm bg-slate-800 text-slate-400 flex-shrink-0";
+            }
+        });
+        if (toggleBtn) toggleBtn.innerHTML = `<i class="fa-solid fa-table-columns mr-1.5 text-slate-400"></i> Xem cả 3 bước`;
+    }
+}
+
 // Exports
 window.showToast = showToast;
+window.switchInspectionStep = switchInspectionStep;
+window.toggleAllStepsView = toggleAllStepsView;
 window.handleStep1Submit = handleStep1Submit;
 window.presetStep1Violation = presetStep1Violation;
 window.presetStep1Pass = presetStep1Pass;
