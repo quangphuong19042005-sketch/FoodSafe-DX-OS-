@@ -46,29 +46,69 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadPathogensCatalog();
 });
 
-function initTabs() {
+function switchMainTab(targetTabId) {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    tabButtons.forEach(b => {
+        if (b.dataset.tab === targetTabId) {
+            b.classList.add('border-emerald-400', 'text-emerald-400', 'bg-emerald-500/10');
+            b.classList.remove('border-transparent', 'text-slate-400');
+        } else {
+            b.classList.remove('border-emerald-400', 'text-emerald-400', 'bg-emerald-500/10');
+            b.classList.add('border-transparent', 'text-slate-400', 'hover:text-slate-200');
+        }
+    });
+
+    tabContents.forEach(content => {
+        content.classList.toggle('hidden', content.id !== targetTabId);
+    });
+
+    if (targetTabId === 'tab-trace' && STATE.graphViewer) {
+        setTimeout(() => STATE.graphViewer.resize(), 100);
+    }
+}
+
+function initTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            const target = btn.dataset.tab;
-            tabButtons.forEach(b => {
-                b.classList.remove('border-emerald-400', 'text-emerald-400', 'bg-emerald-500/10');
-                b.classList.add('border-transparent', 'text-slate-400', 'hover:text-slate-200');
-            });
-            btn.classList.add('border-emerald-400', 'text-emerald-400', 'bg-emerald-500/10');
-            btn.classList.remove('border-transparent', 'text-slate-400');
-
-            tabContents.forEach(content => {
-                content.classList.toggle('hidden', content.id !== target);
-            });
-
-            if (target === 'tab-trace' && STATE.graphViewer) {
-                setTimeout(() => STATE.graphViewer.resize(), 100);
-            }
+            switchMainTab(btn.dataset.tab);
         });
     });
+}
+
+function navigateToContext(contextKey) {
+    switch (contextKey) {
+        case 'facilities':
+        case 'suppliers':
+        case 'batches':
+            switchMainTab('tab-inspection');
+            switchInspectionStep(1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+        case 'step1':
+            switchMainTab('tab-inspection');
+            switchInspectionStep(1);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+        case 'step2':
+            switchMainTab('tab-inspection');
+            switchInspectionStep(2);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+        case 'lockers':
+            switchMainTab('tab-inspection');
+            switchInspectionStep(3);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+        case 'incidents':
+            switchMainTab('tab-trace');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            break;
+        default:
+            break;
+    }
 }
 
 function initGraph() {
@@ -733,43 +773,152 @@ async function triggerRapidTraceDemo() {
 // ==========================================
 // TAB 3: TRỢ LÝ QUY CHUẨN VI SINH RAG (OFFLINE)
 // ==========================================
+function clearRAGQuery() {
+    const input = document.getElementById('ragQueryInput');
+    const clearBtn = document.getElementById('btnRagClear');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+    if (clearBtn) {
+        clearBtn.classList.add('hidden');
+    }
+}
+
+function toggleRagClearBtn() {
+    const input = document.getElementById('ragQueryInput');
+    const clearBtn = document.getElementById('btnRagClear');
+    if (!input || !clearBtn) return;
+    if (input.value.trim().length > 0) {
+        clearBtn.classList.remove('hidden');
+    } else {
+        clearBtn.classList.add('hidden');
+    }
+}
+
 async function submitRAGQuery(queryText) {
     const input = document.getElementById('ragQueryInput');
-    const query = queryText || input.value.trim();
+    const query = (queryText !== undefined && queryText !== null ? queryText : (input ? input.value : '')).trim();
     if (!query) return;
 
-    if (queryText) input.value = queryText;
+    if (input) {
+        input.value = query;
+        toggleRagClearBtn();
+    }
 
     const answerBox = document.getElementById('ragAnswerBox');
     const timerBadge = document.getElementById('ragTimerBadge');
-    answerBox.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs"><i class="fa-solid fa-spinner fa-spin mr-2 text-emerald-400"></i> Đang đối soát tri thức QCVN 8-2 và văn bản pháp luật...</div>`;
+    const submitBtn = document.getElementById('btnRagSubmit');
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5"></i><span>Đang tra cứu...</span>`;
+    }
+
+    answerBox.innerHTML = `
+        <div class="p-8 text-center text-slate-400 text-xs border border-dashed border-sky-500/30 rounded-2xl bg-slate-900/60 animate-pulse">
+            <i class="fa-solid fa-spinner fa-spin mr-2 text-sky-400 text-base"></i>
+            <span>Đang đối soát ngữ nghĩa tri thức QCVN 8-2, QĐ 1246 và văn bản pháp luật ATTP...</span>
+        </div>
+    `;
 
     try {
-        const res = await API.post('/rag/query', { query, top_k: 2 });
+        const res = await API.post('/rag/query', { query, top_k: 3 });
         if (res.ok) {
             const data = res.data;
-            timerBadge.innerText = `${data.execution_time_ms} ms (100% Offline Local)`;
+            if (timerBadge) {
+                timerBadge.innerText = `${data.execution_time_ms} ms (100% Offline Local)`;
+                timerBadge.className = "px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            }
             
             // Format answer with simple markdown to HTML
             let formattedHtml = data.answer
-                .replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-white mt-3 mb-2">$1</h2>')
-                .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-emerald-400 mt-2 mb-1">$1</h3>')
-                .replace(/\*\*(.*?)\*\*/gim, '<strong class="text-slate-100">$1</strong>')
-                .replace(/\*(.*?)\*/gim, '<em class="text-slate-300">$1</em>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-white mt-3 mb-2 flex items-center space-x-1.5"><i class="fa-solid fa-file-lines text-sky-400 text-xs mr-1"></i><span>$1</span></h2>')
+                .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-emerald-400 mt-2.5 mb-1.5">$1</h3>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong class="text-slate-100 font-bold">$1</strong>')
+                .replace(/\*(.*?)\*/gim, '<em class="text-slate-300 italic">$1</em>')
                 .replace(/\n/gim, '<br>');
 
+            // Citations pill badges
+            let citationsHtml = '';
+            if (data.citations && data.citations.length > 0) {
+                citationsHtml = `
+                    <div class="mt-4 pt-3.5 border-t border-slate-800 flex flex-wrap items-center gap-1.5">
+                        <span class="text-[11px] font-bold text-slate-400 mr-1.5 inline-flex items-center">
+                            <i class="fa-solid fa-book-bookmark text-sky-400 mr-1"></i>Viện dẫn căn cứ:
+                        </span>
+                        ${data.citations.map(c => `
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 inline-flex items-center shadow-sm">
+                                <i class="fa-solid fa-stamp text-[9px] mr-1 text-sky-400"></i>${c}
+                            </span>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Relevant Chunks (Source Accordion Drawer)
+            let chunksHtml = '';
+            if (data.relevant_chunks && data.relevant_chunks.length > 0) {
+                chunksHtml = `
+                    <details class="mt-3.5 group border border-slate-800 rounded-xl bg-slate-950/60 overflow-hidden">
+                        <summary class="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-900/80 transition text-xs font-semibold text-slate-300 select-none">
+                            <span class="flex items-center space-x-2">
+                                <i class="fa-solid fa-file-contract text-emerald-400"></i>
+                                <span>Trích đoạn văn bản gốc đối chiếu (${data.relevant_chunks.length} điều khoản)</span>
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-slate-500 text-[10px] transition group-open:rotate-180"></i>
+                        </summary>
+                        <div class="p-3 pt-2 space-y-3 border-t border-slate-800/80 divide-y divide-slate-800/60">
+                            ${data.relevant_chunks.map((ch, idx) => `
+                                <div class="${idx > 0 ? 'pt-3' : ''} text-xs">
+                                    <div class="flex items-center justify-between text-[11px] mb-1">
+                                        <span class="font-bold text-emerald-400">${ch.title}</span>
+                                        <span class="font-mono text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                                            Match: ${(ch.relevance_score * 100).toFixed(0)}%
+                                        </span>
+                                    </div>
+                                    <div class="font-mono text-[10px] text-sky-300 mb-1.5">${ch.standard_code}</div>
+                                    <p class="text-slate-300 text-[11px] leading-relaxed bg-slate-900/80 p-2.5 rounded-lg border border-slate-800/80 whitespace-pre-line font-mono">
+                                        ${ch.content}
+                                    </p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                `;
+            }
+
             answerBox.innerHTML = `
-                <div class="p-5 rounded-xl border border-slate-700 bg-slate-900/90 text-xs leading-relaxed">
-                    ${formattedHtml}
-                    <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                        <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Chế độ: <strong>${data.engine_mode}</strong></span>
-                        <span>Độ tin cậy: <strong>${(data.confidence_score * 100).toFixed(0)}%</strong></span>
+                <div class="p-5 rounded-2xl border border-slate-700 bg-slate-900/90 text-xs leading-relaxed shadow-xl">
+                    <div class="prose prose-invert max-w-none text-slate-200">
+                        ${formattedHtml}
+                    </div>
+                    ${citationsHtml}
+                    ${chunksHtml}
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                        <span class="flex items-center space-x-1.5">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                            <span>Chế độ: <strong>${data.engine_mode}</strong> (BM25 Hybrid)</span>
+                        </span>
+                        <span class="flex items-center space-x-3">
+                            <span>Độ tin cậy: <strong class="text-emerald-400 font-mono">${(data.confidence_score * 100).toFixed(0)}%</strong></span>
+                            <span>Thời gian: <strong class="text-sky-400 font-mono">${data.execution_time_ms} ms</strong></span>
+                        </span>
                     </div>
                 </div>
             `;
+        } else {
+            answerBox.innerHTML = `<div class="p-4 rounded-xl border border-rose-500/50 bg-rose-950/30 text-rose-300 text-xs">Lỗi tra cứu: ${res.data?.detail || res.data?.message || 'Không thể tra cứu tri thức'}</div>`;
         }
     } catch (e) {
         answerBox.innerHTML = `<div class="p-4 rounded-xl border border-rose-500/50 bg-rose-950/30 text-rose-300 text-xs">Lỗi tra cứu: ${e.message}</div>`;
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            submitBtn.innerHTML = `<i class="fa-solid fa-bolt mr-1.5"></i><span>Tra Cứu</span>`;
+        }
     }
 }
 
@@ -1001,6 +1150,8 @@ function updateInspectionStepUI() {
 
 // Exports
 window.showToast = showToast;
+window.switchMainTab = switchMainTab;
+window.navigateToContext = navigateToContext;
 window.switchInspectionStep = switchInspectionStep;
 window.toggleAllStepsView = toggleAllStepsView;
 window.handleStep1Submit = handleStep1Submit;
@@ -1019,6 +1170,8 @@ window.handleUnlockBackdropClick = handleUnlockBackdropClick;
 window.executeLockerUnlock = executeLockerUnlock;
 window.triggerRapidTraceDemo = triggerRapidTraceDemo;
 window.submitRAGQuery = submitRAGQuery;
+window.clearRAGQuery = clearRAGQuery;
+window.toggleRagClearBtn = toggleRagClearBtn;
 window.showPokaYokeModal = showPokaYokeModal;
 window.closePokaYokeModal = closePokaYokeModal;
 window.handlePokaBackdropClick = handlePokaBackdropClick;
