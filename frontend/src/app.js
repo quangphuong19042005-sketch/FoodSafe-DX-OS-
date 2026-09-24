@@ -567,24 +567,59 @@ async function loadSampleLockers() {
 
 // Modal Mở Khóa Tủ Mẫu (Poka-yoke & HITL)
 let activeUnlockLockerId = null;
+let lastActiveUnlockTrigger = null;
 
 function openUnlockModal(lockerId, lockerNumber, hoursLeft) {
+    lastActiveUnlockTrigger = document.activeElement;
     activeUnlockLockerId = lockerId;
-    document.getElementById('unlock-modal-title').innerText = `Mở Khóa Tủ Mẫu: ${lockerNumber}`;
-    document.getElementById('unlock-modal-hours').innerText = hoursLeft > 0 ? `${hoursLeft} giờ nữa mới đủ điều kiện quy chuẩn 24H!` : 'Đã đủ 24H theo quy định.';
-    document.getElementById('unlockModal').classList.remove('hidden');
+    const titleEl = document.getElementById('unlock-modal-title');
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="fa-solid fa-key text-amber-400"></i><span>Mở Khóa Tủ Mẫu: ${lockerNumber}</span>`;
+    }
+    const hoursEl = document.getElementById('unlock-modal-hours');
+    if (hoursEl) {
+        hoursEl.innerText = hoursLeft > 0 ? `${hoursLeft} giờ nữa mới đủ điều kiện quy chuẩn 24H!` : 'Đã đủ 24H theo quy định.';
+    }
+
+    // Reset fields
+    const toggle = document.getElementById('unlock-override-toggle');
+    if (toggle) toggle.checked = false;
+    const reasonInput = document.getElementById('unlock-reason');
+    if (reasonInput) reasonInput.value = '';
+    const passInput = document.getElementById('unlock-passcode');
+    if (passInput) passInput.value = '';
+
+    const modal = document.getElementById('unlockModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            if (toggle) toggle.focus();
+        }, 50);
+    }
 }
 
 function closeUnlockModal() {
-    document.getElementById('unlockModal').classList.add('hidden');
+    const modal = document.getElementById('unlockModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
     activeUnlockLockerId = null;
+    if (lastActiveUnlockTrigger && typeof lastActiveUnlockTrigger.focus === 'function') {
+        lastActiveUnlockTrigger.focus();
+        lastActiveUnlockTrigger = null;
+    }
+}
+
+function handleUnlockBackdropClick(e) {
+    if (e.target === document.getElementById('unlockModal')) {
+        closeUnlockModal();
+    }
 }
 
 async function executeLockerUnlock() {
     if (!activeUnlockLockerId) return;
     const isOverride = document.getElementById('unlock-override-toggle').checked;
-    const reason = document.getElementById('unlock-reason').value;
-    const passcode = document.getElementById('unlock-passcode').value;
+    const reason = document.getElementById('unlock-reason').value.trim();
+    const passcode = document.getElementById('unlock-passcode').value.trim();
 
     const payload = {
         operator_name: "Cán bộ Y tế Bếp ăn",
@@ -593,15 +628,30 @@ async function executeLockerUnlock() {
         override_passcode: passcode || null
     };
 
-    const res = await API.post(`/sample-lockers/${activeUnlockLockerId}/unlock`, payload);
+    const confirmBtn = document.getElementById('btnConfirmUnlock');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5"></i><span>Đang xác thực...</span>`;
+    }
 
-    if (res.status === 422) {
-        const v = res.data.violation || res.data.detail || res.data;
-        showPokaYokeModal(v);
-    } else if (res.ok) {
-        showToast("Mở niêm phong tủ mẫu thành công: " + (res.data.message || 'Đã mở chốt'), "success");
-        closeUnlockModal();
-        await loadSampleLockers();
+    try {
+        const res = await API.post(`/sample-lockers/${activeUnlockLockerId}/unlock`, payload);
+
+        if (res.status === 422) {
+            const v = res.data.violation || res.data.detail || res.data;
+            showPokaYokeModal(v);
+        } else if (res.ok) {
+            showToast("Mở niêm phong tủ mẫu thành công: " + (res.data.message || 'Đã mở chốt'), "success");
+            closeUnlockModal();
+            await loadSampleLockers();
+        }
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            confirmBtn.innerHTML = `<i class="fa-solid fa-lock-open text-xs"></i><span>Xác Nhận Mở Chốt Tủ</span>`;
+        }
     }
 }
 
@@ -780,20 +830,65 @@ function renderBIStats() {
 // ==========================================
 // POKA-YOKE GLOBAL MODAL
 // ==========================================
+let lastPokaActiveTrigger = null;
+
 function showPokaYokeModal(detail) {
     if (!detail) return;
+    lastPokaActiveTrigger = document.activeElement;
     const v = detail.violation || detail;
-    document.getElementById('poka-error-code').innerText = v.error_code || 'POKA_YOKE_TRIGGERED';
-    document.getElementById('poka-message').innerText = v.message || detail.message || 'Hệ thống đã tự động khóa chốt thao tác để ngăn ngừa sai phạm!';
-    document.getElementById('poka-standard').innerText = v.standard_ref || 'QCVN Bộ Y tế';
-    document.getElementById('poka-action').innerText = v.action_required || 'Liên hệ cán bộ phụ trách an toàn thực phẩm.';
-    document.getElementById('poka-blocked').innerText = v.blocked_operation || 'Thao tác bị hủy bỏ';
-    document.getElementById('pokaYokeModal').classList.remove('hidden');
+    const errCodeEl = document.getElementById('poka-error-code');
+    if (errCodeEl) errCodeEl.innerText = v.error_code || 'POKA_YOKE_TRIGGERED';
+    const msgEl = document.getElementById('poka-message');
+    if (msgEl) msgEl.innerText = v.message || detail.message || 'Hệ thống đã tự động khóa chốt thao tác để ngăn ngừa sai phạm!';
+    const stdEl = document.getElementById('poka-standard');
+    if (stdEl) stdEl.innerText = v.standard_ref || 'QCVN Bộ Y tế';
+    const actEl = document.getElementById('poka-action');
+    if (actEl) actEl.innerText = v.action_required || 'Liên hệ cán bộ phụ trách an toàn thực phẩm.';
+    const blkEl = document.getElementById('poka-blocked');
+    if (blkEl) blkEl.innerText = v.blocked_operation || 'Thao tác bị hủy bỏ';
+
+    const modal = document.getElementById('pokaYokeModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        const dismissBtn = document.getElementById('poka-dismiss-btn');
+        if (dismissBtn) {
+            setTimeout(() => dismissBtn.focus(), 50);
+        }
+    }
 }
 
 function closePokaYokeModal() {
-    document.getElementById('pokaYokeModal').classList.add('hidden');
+    const modal = document.getElementById('pokaYokeModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    if (lastPokaActiveTrigger && typeof lastPokaActiveTrigger.focus === 'function') {
+        lastPokaActiveTrigger.focus();
+        lastPokaActiveTrigger = null;
+    }
 }
+
+function handlePokaBackdropClick(e) {
+    if (e.target === document.getElementById('pokaYokeModal')) {
+        closePokaYokeModal();
+    }
+}
+
+// Global Keyboard Shortcut: ESC key closes open modals
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        const pokaModal = document.getElementById('pokaYokeModal');
+        if (pokaModal && !pokaModal.classList.contains('hidden')) {
+            closePokaYokeModal();
+            return;
+        }
+
+        const unlockModal = document.getElementById('unlockModal');
+        if (unlockModal && !unlockModal.classList.contains('hidden')) {
+            closeUnlockModal();
+            return;
+        }
+    }
+});
 
 function showToast(message, type = 'info', duration = 4000) {
     const container = document.getElementById('toastContainer');
@@ -914,9 +1009,16 @@ window.presetStep1Pass = presetStep1Pass;
 window.handleStep2Submit = handleStep2Submit;
 window.presetStep2Undercooked = presetStep2Undercooked;
 window.presetStep2Pass = presetStep2Pass;
+window.presetStep2Contaminated = presetStep2Contaminated;
+window.selectApprovedBatchesStep2 = selectApprovedBatchesStep2;
+window.clearSelectedBatchesStep2 = clearSelectedBatchesStep2;
+window.onStep2BatchCheckboxChange = onStep2BatchCheckboxChange;
 window.openUnlockModal = openUnlockModal;
 window.closeUnlockModal = closeUnlockModal;
+window.handleUnlockBackdropClick = handleUnlockBackdropClick;
 window.executeLockerUnlock = executeLockerUnlock;
 window.triggerRapidTraceDemo = triggerRapidTraceDemo;
 window.submitRAGQuery = submitRAGQuery;
+window.showPokaYokeModal = showPokaYokeModal;
 window.closePokaYokeModal = closePokaYokeModal;
+window.handlePokaBackdropClick = handlePokaBackdropClick;

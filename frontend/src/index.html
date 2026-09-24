@@ -818,12 +818,12 @@
     <!-- ============================================================= -->
     <!-- MODAL 1: POKA-YOKE INTERCEPT WARNING MODAL                    -->
     <!-- ============================================================= -->
-    <div id="pokaYokeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div class="bg-slate-900 border-2 border-rose-500 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative danger-glow">
+    <div id="pokaYokeModal" role="dialog" aria-modal="true" aria-labelledby="poka-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="handlePokaBackdropClick(event)">
+        <div class="bg-slate-900 border-2 border-rose-500 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative danger-glow" onclick="event.stopPropagation()">
             <div class="flex items-center space-x-3 text-rose-500 mb-3">
                 <i class="fa-solid fa-hand text-3xl"></i>
                 <div>
-                    <h3 class="text-lg font-black text-white">RÀO CHẮN POKA-YOKE TỰ ĐỘNG KHÓA CHẶN!</h3>
+                    <h3 id="poka-modal-title" class="text-lg font-black text-white">RÀO CHẮN POKA-YOKE TỰ ĐỘNG KHÓA CHẶN!</h3>
                     <span id="poka-error-code" class="text-xs font-mono font-bold text-rose-400">POKA_YOKE_TRIGGERED</span>
                 </div>
             </div>
@@ -847,8 +847,9 @@
                 </div>
             </div>
 
-            <div class="mt-4 flex justify-end">
-                <button onclick="closePokaYokeModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition">
+            <div class="mt-4 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">Bấm [ESC] để đóng</span>
+                <button id="poka-dismiss-btn" onclick="closePokaYokeModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs border border-slate-700 transition">
                     Đã Hiểu & Chấp Hành Khóa Chặn
                 </button>
             </div>
@@ -858,14 +859,14 @@
     <!-- ============================================================= -->
     <!-- MODAL 2: SAMPLE LOCKER UNLOCK MODAL (HITL)                   -->
     <!-- ============================================================= -->
-    <div id="unlockModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+    <div id="unlockModal" role="dialog" aria-modal="true" aria-labelledby="unlock-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="handleUnlockBackdropClick(event)">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-3">
                 <h3 id="unlock-modal-title" class="text-base font-bold text-white flex items-center space-x-2">
                     <i class="fa-solid fa-key text-amber-400"></i>
                     <span>Mở Khóa Tủ Lưu Mẫu</span>
                 </h3>
-                <button onclick="closeUnlockModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeUnlockModal()" aria-label="Đóng hộp thoại" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
 
             <p id="unlock-modal-hours" class="text-xs text-amber-400 font-semibold mb-4"></p>
@@ -882,22 +883,25 @@
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Lý Do Mở Khóa Khẩn Cấp:</label>
+                    <label for="unlock-reason" class="block text-[11px] font-bold text-slate-300 mb-1">Lý Do Mở Khóa Khẩn Cấp:</label>
                     <input type="text" id="unlock-reason" placeholder="Ví dụ: Thanh tra đột xuất Sở Y tế / Niêm phong điều tra..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-rose-500 focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Mã Xác Thực Trưởng Ban (Passcode):</label>
-                    <input type="password" id="unlock-passcode" placeholder="Mặc định demo: HITL-EMERGENCY-2026" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-rose-500 focus:outline-none">
+                    <label for="unlock-passcode" class="block text-[11px] font-bold text-slate-300 mb-1">Mã Xác Thực Trưởng Ban (Passcode):</label>
+                    <input type="password" id="unlock-passcode" placeholder="Mặc định demo: HITL-EMERGENCY-2026" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-rose-500 focus:outline-none font-mono">
                 </div>
             </div>
 
-            <div class="mt-5 flex justify-end space-x-3">
-                <button onclick="closeUnlockModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Hủy Bỏ</button>
-                <button onclick="executeLockerUnlock()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-lg shadow-amber-900/30">
-                    <i class="fa-solid fa-lock-open"></i>
-                    <span>Xác Nhận Mở Chốt Tủ</span>
-                </button>
+            <div class="mt-5 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">Bấm [ESC] để hủy</span>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="closeUnlockModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Hủy Bỏ</button>
+                    <button type="button" id="btnConfirmUnlock" onclick="executeLockerUnlock()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-lg shadow-amber-900/30">
+                        <i class="fa-solid fa-lock-open text-xs"></i>
+                        <span>Xác Nhận Mở Chốt Tủ</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
