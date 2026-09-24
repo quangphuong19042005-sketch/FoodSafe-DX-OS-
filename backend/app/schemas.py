@@ -242,3 +242,31 @@ class TraceResultResponse(BaseModel):
     affected_facilities: List[TraceAffectedFacility]
     execution_time_ms: float
     immediate_recall_order: str
+
+
+# ==========================================
+# LOCAL RAG & MICROBIOLOGY ENGINE SCHEMAS
+# ==========================================
+class RAGQueryRequest(BaseModel):
+    query: str = Field(..., description="Câu hỏi hoặc từ khóa tra cứu quy chuẩn/vi sinh/pháp lý ATTP")
+    category: Optional[str] = Field("ALL", description="Phân loại: ALL, MICROBIOLOGY, LEGAL, PROCEDURE, RECALL")
+    top_k: Optional[int] = Field(3, description="Số lượng trích đoạn quy chuẩn đối chiếu cao nhất")
+
+
+class RAGChunk(BaseModel):
+    doc_id: str
+    title: str
+    standard_code: str
+    content: str
+    relevance_score: float
+
+
+class RAGQueryResponse(BaseModel):
+    query: str
+    category: str
+    answer: str
+    confidence_score: float
+    citations: List[str]
+    relevant_chunks: List[RAGChunk]
+    execution_time_ms: float
+    engine_mode: str = "LOCAL_OFFLINE_ZERO_CLOUD"
