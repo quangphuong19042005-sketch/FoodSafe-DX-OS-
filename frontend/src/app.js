@@ -124,20 +124,21 @@ function renderFacilitySelector() {
     const select = document.getElementById('facilitySelector');
     if (!select) return;
 
-    select.innerHTML = STATE.facilities.map(f => `
-        <option value="${f.id}">🏫 ${f.name} (${f.daily_meal_capacity} suất/ngày)</option>
-    `).join('');
-
-    if (STATE.facilities.length > 0) {
+    if (!STATE.currentFacilityId && STATE.facilities.length > 0) {
         STATE.currentFacilityId = STATE.facilities[0].id;
-        updateCurrentFacilityUI();
     }
 
-    select.addEventListener('change', (e) => {
+    select.innerHTML = STATE.facilities.map(f => `
+        <option value="${f.id}" ${f.id === STATE.currentFacilityId ? 'selected' : ''}>🏫 ${f.name} (${f.daily_meal_capacity} suất/ngày)</option>
+    `).join('');
+
+    updateCurrentFacilityUI();
+
+    select.onchange = (e) => {
         STATE.currentFacilityId = parseInt(e.target.value);
         updateCurrentFacilityUI();
         loadSampleLockers();
-    });
+    };
 }
 
 function updateCurrentFacilityUI() {
@@ -153,25 +154,150 @@ function updateCurrentFacilityUI() {
 function populateStep1Selects() {
     const batchSelect = document.getElementById('step1-batch');
     if (!batchSelect) return;
-    batchSelect.innerHTML = STATE.batches.map(b => `
-        <option value="${b.id}">${b.batch_code} - ${b.name} (${b.category} - Hạn: ${new Date(b.expiry_date).toLocaleDateString('vi-VN')})</option>
-    `).join('');
+    if (!STATE.batches || STATE.batches.length === 0) {
+        batchSelect.innerHTML = `<option value="">(Chưa có lô hàng)</option>`;
+        return;
+    }
+    batchSelect.innerHTML = STATE.batches.map(b => {
+        const isApproved = b.status === 'APPROVED';
+        const isRejected = b.status === 'REJECTED';
+        const statusText = isApproved ? 'ĐẠT' : (isRejected ? 'BỊ TỪ CHỐI' : b.status);
+        return `
+            <option value="${b.id}">
+                ${b.batch_code} - ${b.name} [${statusText}] (${b.category} - HSD: ${b.expiry_date ? new Date(b.expiry_date).toLocaleDateString('vi-VN') : 'N/A'})
+            </option>
+        `;
+    }).join('');
 }
 
 function populateStep2Selects() {
     const batchSelect = document.getElementById('step2-batches');
-    if (!batchSelect) return;
-    batchSelect.innerHTML = STATE.batches.map(b => `
-        <option value="${b.id}" ${b.status === 'REJECTED' ? 'class="text-rose-400 font-bold"' : ''}>
-            ${b.batch_code} - ${b.name} [Trạng thái: ${b.status}]
-        </option>
-    `).join('');
+    const listContainer = document.getElementById('step2-batches-list');
+
+    // Keep hidden native select synchronized for any fallback / headless scripts
+    if (batchSelect) {
+        batchSelect.innerHTML = STATE.batches.map(b => `
+            <option value="${b.id}" ${b.status === 'REJECTED' ? 'class="text-rose-400 font-bold"' : ''}>
+                ${b.batch_code} - ${b.name} [Trạng thái: ${b.status}]
+            </option>
+        `).join('');
+    }
+
+    if (!listContainer) return;
+
+    if (!STATE.batches || STATE.batches.length === 0) {
+        listContainer.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">Chưa có lô nguyên liệu nào trong kho.</div>`;
+        onStep2BatchCheckboxChange();
+        return;
+    }
+
+    listContainer.innerHTML = STATE.batches.map(b => {
+        const isApproved = b.status === 'APPROVED';
+        const isRejected = b.status === 'REJECTED';
+        const badgeClass = isApproved 
+            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+            : (isRejected ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30');
+        const badgeText = isApproved ? 'ĐẠT CHUẨN' : (isRejected ? 'BỊ TỪ CHỐI' : b.status);
+        const badgeIcon = isApproved ? 'fa-circle-check' : (isRejected ? 'fa-circle-xmark' : 'fa-clock');
+
+        return `
+            <label class="flex items-center justify-between p-2.5 hover:bg-slate-900 cursor-pointer transition select-none group" for="step2-cb-${b.id}">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <input type="checkbox" id="step2-cb-${b.id}" value="${b.id}" data-status="${b.status}"
+                        class="step2-batch-checkbox w-4 h-4 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-0 cursor-pointer"
+                        onchange="onStep2BatchCheckboxChange()">
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-mono font-bold text-xs text-amber-400 group-hover:text-amber-300">${b.batch_code}</span>
+                            <span class="text-xs font-semibold text-slate-200 truncate">${b.name}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400">
+                            ${b.category || 'Thực phẩm'} &bull; HSD: ${b.expiry_date ? new Date(b.expiry_date).toLocaleDateString('vi-VN') : 'N/A'}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-shrink-0 ml-2">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">
+                        <i class="fa-solid ${badgeIcon} mr-1"></i>
+                        <span>${badgeText}</span>
+                    </span>
+                </div>
+            </label>
+        `;
+    }).join('');
+
+    // Auto-select first APPROVED batch by default if none checked
+    const approvedCbs = listContainer.querySelectorAll('.step2-batch-checkbox[data-status="APPROVED"]');
+    if (approvedCbs.length > 0) {
+        approvedCbs[0].checked = true;
+    }
+    onStep2BatchCheckboxChange();
+}
+
+function onStep2BatchCheckboxChange() {
+    const checkboxes = document.querySelectorAll('.step2-batch-checkbox');
+    const batchSelect = document.getElementById('step2-batches');
+    const selectedCountEl = document.getElementById('step2-selected-count');
+    const warningEl = document.getElementById('step2-rejected-warning');
+
+    let count = 0;
+    let hasRejected = false;
+    const selectedIds = new Set();
+
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            count++;
+            selectedIds.add(cb.value);
+            if (cb.getAttribute('data-status') === 'REJECTED') {
+                hasRejected = true;
+            }
+        }
+    });
+
+    if (selectedCountEl) selectedCountEl.textContent = count;
+
+    if (warningEl) {
+        if (hasRejected) {
+            warningEl.classList.remove('hidden');
+        } else {
+            warningEl.classList.add('hidden');
+        }
+    }
+
+    // Keep native select options synchronized
+    if (batchSelect) {
+        Array.from(batchSelect.options).forEach(opt => {
+            opt.selected = selectedIds.has(opt.value);
+        });
+    }
+}
+
+function selectApprovedBatchesStep2() {
+    const checkboxes = document.querySelectorAll('.step2-batch-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = (cb.getAttribute('data-status') === 'APPROVED');
+    });
+    onStep2BatchCheckboxChange();
+}
+
+function clearSelectedBatchesStep2() {
+    const checkboxes = document.querySelectorAll('.step2-batch-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+    onStep2BatchCheckboxChange();
 }
 
 // Kiểm thực Bước 1
 async function handleStep1Submit(e) {
     if (e) e.preventDefault();
-    const batchId = parseInt(document.getElementById('step1-batch').value);
+    const batchInput = document.getElementById('step1-batch');
+    const batchId = batchInput ? parseInt(batchInput.value) : NaN;
+    if (isNaN(batchId)) {
+        showToast("Vui lòng chọn lô hàng nhập kho trước khi phê duyệt.", "warning");
+        return;
+    }
+
     const temp = parseFloat(document.getElementById('step1-temp').value);
     const packagingIntact = document.getElementById('step1-packaging').checked;
     const sensoryStatus = document.getElementById('step1-sensory').value;
@@ -187,39 +313,54 @@ async function handleStep1Submit(e) {
         notes: notes || "Kiểm tra thực tế tại cổng giao nhận"
     };
 
-    const res = await API.post('/inspections/step1', payload);
-    const alertBox = document.getElementById('step1-result-alert');
+    const submitBtn = document.getElementById('btnStep1Submit');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i><span>Đang kiểm tra rào chắn...</span>`;
+    }
 
-    if (res.status === 422) {
-        // POKA-YOKE KÍCH HOẠT CHẶN ĐỨNG
-        const v = res.data.violation || res.data.detail || res.data;
-        showPokaYokeModal(v);
-        alertBox.className = "mt-4 p-4 rounded-xl border border-rose-500/50 bg-rose-950/40 text-rose-300 text-xs";
-        alertBox.innerHTML = `
-            <div class="flex items-center space-x-2 font-bold text-sm text-rose-400 mb-1">
-                <i class="fa-solid fa-hand text-lg"></i>
-                <span>POKA-YOKE ĐÃ TỰ ĐỘNG CHẶN NHẬP KHO!</span>
-            </div>
-            <p><strong>Lỗi:</strong> ${v.message || res.data.message || 'Vi phạm an toàn chuỗi lạnh'}</p>
-            <p><strong>Căn cứ:</strong> ${v.standard_ref || 'QCVN Bộ Y tế'}</p>
-            <p><strong>Hành động:</strong> ${v.action_required || 'Từ chối lô hàng'}</p>
-        `;
-        alertBox.classList.remove('hidden');
-    } else if (res.ok) {
-        showToast("Phê duyệt nhập kho thành công! Đã cấp phép chuyển sang Bước 2.", "success");
-        alertBox.className = "mt-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs";
-        alertBox.innerHTML = `
-            <div class="flex items-center space-x-2 font-bold text-sm text-emerald-400 mb-1">
-                <i class="fa-solid fa-circle-check text-lg"></i>
-                <span>ĐẠT CHUẨN! ĐÃ DUYỆT NHẬP KHO THỰC PHẨM</span>
-            </div>
-            <p class="mb-3 text-slate-300">Phiếu kiểm thực số #${res.data.id} đã lưu trữ thành công. Lô hàng đủ điều kiện chuyển sang Bước 2 (Chế biến).</p>
-            <button type="button" onclick="switchInspectionStep(2)" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition inline-flex items-center space-x-1.5 shadow-md">
-                <span>Chuyển Sang Bước 2: Chế Biến</span>
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </button>
-        `;
-        alertBox.classList.remove('hidden');
+    try {
+        const res = await API.post('/inspections/step1', payload);
+        const alertBox = document.getElementById('step1-result-alert');
+
+        if (res.status === 422) {
+            // POKA-YOKE KÍCH HOẠT CHẶN ĐỨNG
+            const v = res.data.violation || res.data.detail || res.data;
+            showPokaYokeModal(v);
+            alertBox.className = "mt-4 p-4 rounded-xl border border-rose-500/50 bg-rose-950/40 text-rose-300 text-xs";
+            alertBox.innerHTML = `
+                <div class="flex items-center space-x-2 font-bold text-sm text-rose-400 mb-1">
+                    <i class="fa-solid fa-hand text-lg"></i>
+                    <span>POKA-YOKE ĐÃ TỰ ĐỘNG CHẶN NHẬP KHO!</span>
+                </div>
+                <p><strong>Lỗi:</strong> ${v.message || res.data.message || 'Vi phạm an toàn chuỗi lạnh'}</p>
+                <p><strong>Căn cứ:</strong> ${v.standard_ref || 'QCVN Bộ Y tế'}</p>
+                <p><strong>Hành động:</strong> ${v.action_required || 'Từ chối lô hàng'}</p>
+            `;
+            alertBox.classList.remove('hidden');
+        } else if (res.ok) {
+            showToast("Phê duyệt nhập kho thành công! Đã cấp phép chuyển sang Bước 2.", "success");
+            alertBox.className = "mt-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs";
+            alertBox.innerHTML = `
+                <div class="flex items-center space-x-2 font-bold text-sm text-emerald-400 mb-1">
+                    <i class="fa-solid fa-circle-check text-lg"></i>
+                    <span>ĐẠT CHUẨN! ĐÃ DUYỆT NHẬP KHO THỰC PHẨM</span>
+                </div>
+                <p class="mb-3 text-slate-300">Phiếu kiểm thực số #${res.data.id} đã lưu trữ thành công. Lô hàng đủ điều kiện chuyển sang Bước 2 (Chế biến).</p>
+                <button type="button" onclick="switchInspectionStep(2)" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition inline-flex items-center space-x-1.5 shadow-md">
+                    <span>Chuyển Sang Bước 2: Chế Biến</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            `;
+            alertBox.classList.remove('hidden');
+        }
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            submitBtn.innerHTML = `<i class="fa-solid fa-file-circle-check text-sm mr-2"></i><span>Phê Duyệt Nhập Kho Lô Hàng</span>`;
+        }
     }
     await loadInitialData();
 }
@@ -244,9 +385,28 @@ function presetStep1Pass() {
 // Kiểm thực Bước 2
 async function handleStep2Submit(e) {
     if (e) e.preventDefault();
-    const mealName = document.getElementById('step2-meal-name').value;
-    const batchSelect = document.getElementById('step2-batches');
-    const selectedBatchIds = Array.from(batchSelect.selectedOptions).map(opt => parseInt(opt.value));
+    const mealName = document.getElementById('step2-meal-name').value.trim();
+    if (!mealName) {
+        showToast("Vui lòng nhập tên món ăn bán trú.", "warning");
+        return;
+    }
+
+    let selectedBatchIds = [];
+    const checkedBoxes = document.querySelectorAll('.step2-batch-checkbox:checked');
+    if (checkedBoxes.length > 0) {
+        selectedBatchIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+    } else {
+        const batchSelect = document.getElementById('step2-batches');
+        if (batchSelect && batchSelect.selectedOptions) {
+            selectedBatchIds = Array.from(batchSelect.selectedOptions).map(opt => parseInt(opt.value));
+        }
+    }
+
+    if (selectedBatchIds.length === 0) {
+        showToast("Vui lòng chọn ít nhất 1 lô nguyên liệu cấu thành món ăn!", "warning");
+        return;
+    }
+
     const cookingMethod = document.getElementById('step2-method').value;
     const coreTemp = parseFloat(document.getElementById('step2-core-temp').value);
     const sensoryCheck = document.getElementById('step2-sensory').value;
@@ -261,49 +421,82 @@ async function handleStep2Submit(e) {
         cook_name: "Bếp trưởng Phụ trách"
     };
 
-    const res = await API.post('/inspections/step2', payload);
-    const alertBox = document.getElementById('step2-result-alert');
+    const submitBtn = document.getElementById('btnStep2Submit');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i><span>Đang thẩm định rào chắn Poka-Yoke...</span>`;
+    }
 
-    if (res.status === 422) {
-        const v = res.data.violation || res.data.detail || res.data;
-        showPokaYokeModal(v);
-        alertBox.className = "mt-4 p-4 rounded-xl border border-rose-500/50 bg-rose-950/40 text-rose-300 text-xs";
-        alertBox.innerHTML = `
-            <div class="flex items-center space-x-2 font-bold text-sm text-rose-400 mb-1">
-                <i class="fa-solid fa-ban text-lg"></i>
-                <span>POKA-YOKE CHẶN XUẤT PHẦN ĂN: VI PHẠM AN TOÀN CHẾ BIẾN!</span>
-            </div>
-            <p><strong>Lỗi:</strong> ${v.message || res.data.message || 'Vi phạm nhiệt độ nấu chín'}</p>
-            <p><strong>Căn cứ:</strong> ${v.standard_ref || 'QCVN 8-2:2011/BYT'}</p>
-            <p><strong>Hành động:</strong> ${v.action_required || 'Hủy bỏ'}</p>
-        `;
-        alertBox.classList.remove('hidden');
-    } else if (res.ok) {
-        showToast(`Món ăn '${res.data.meal_name}' đạt chuẩn nấu chín! Sẵn sàng lưu mẫu.`, "success");
-        alertBox.className = "mt-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs";
-        alertBox.innerHTML = `
-            <div class="flex items-center space-x-2 font-bold text-sm text-emerald-400 mb-1">
-                <i class="fa-solid fa-circle-check text-lg"></i>
-                <span>ĐẠT CHUẨN NẤU CHÍN HOÀN TOÀN! (Nhiệt độ tâm ${res.data.core_temp}°C &ge; 75.0°C)</span>
-            </div>
-            <p class="mb-3 text-slate-300">Món ăn '${res.data.meal_name}' đã được phê duyệt. Vui lòng tiến hành Lưu mẫu thức ăn 24H tại Bước 3.</p>
-            <button type="button" onclick="switchInspectionStep(3)" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition inline-flex items-center space-x-1.5 shadow-md">
-                <span>Chuyển Sang Bước 3: Tủ Lưu Mẫu</span>
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </button>
-        `;
-        alertBox.classList.remove('hidden');
+    try {
+        const res = await API.post('/inspections/step2', payload);
+        const alertBox = document.getElementById('step2-result-alert');
+
+        if (res.status === 422) {
+            const v = res.data.violation || res.data.detail || res.data;
+            showPokaYokeModal(v);
+            alertBox.className = "mt-4 p-4 rounded-xl border border-rose-500/50 bg-rose-950/40 text-rose-300 text-xs";
+            alertBox.innerHTML = `
+                <div class="flex items-center space-x-2 font-bold text-sm text-rose-400 mb-1">
+                    <i class="fa-solid fa-ban text-lg"></i>
+                    <span>POKA-YOKE CHẶN XUẤT PHẦN ĂN: VI PHẠM AN TOÀN CHẾ BIẾN!</span>
+                </div>
+                <p><strong>Lỗi:</strong> ${v.message || res.data.message || 'Vi phạm an toàn chế biến'}</p>
+                <p><strong>Căn cứ:</strong> ${v.standard_ref || 'QCVN 8-2:2011/BYT'}</p>
+                <p><strong>Hành động:</strong> ${v.action_required || 'Hủy bỏ và nấu lại'}</p>
+            `;
+            alertBox.classList.remove('hidden');
+        } else if (res.ok) {
+            showToast(`Món ăn '${res.data.meal_name}' đạt chuẩn nấu chín! Sẵn sàng lưu mẫu.`, "success");
+            alertBox.className = "mt-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs";
+            alertBox.innerHTML = `
+                <div class="flex items-center space-x-2 font-bold text-sm text-emerald-400 mb-1">
+                    <i class="fa-solid fa-circle-check text-lg"></i>
+                    <span>ĐẠT CHUẨN NẤU CHÍN HOÀN TOÀN! (Nhiệt độ tâm ${res.data.core_temp}°C &ge; 75.0°C)</span>
+                </div>
+                <p class="mb-3 text-slate-300">Món ăn '${res.data.meal_name}' đã được phê duyệt. Vui lòng tiến hành Lưu mẫu thức ăn 24H tại Bước 3.</p>
+                <button type="button" onclick="switchInspectionStep(3)" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition inline-flex items-center space-x-1.5 shadow-md">
+                    <span>Chuyển Sang Bước 3: Tủ Lưu Mẫu</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            `;
+            alertBox.classList.remove('hidden');
+        }
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            submitBtn.innerHTML = `<i class="fa-solid fa-fire-burner text-sm mr-2"></i><span>Kiểm Định Nhiệt Độ Nấu Chín</span>`;
+        }
     }
 }
 
 function presetStep2Undercooked() {
-    document.getElementById('step2-meal-name').value = 'Gà kho gừng chưa chín thấu (Test)';
+    selectApprovedBatchesStep2();
+    document.getElementById('step2-meal-name').value = 'Gà kho gừng chưa chín thấu (Test Nhiệt Độ)';
     document.getElementById('step2-core-temp').value = '61.5';
     document.getElementById('step2-sensory').value = 'UNDERCOOKED_RAW_INSIDE';
     handleStep2Submit();
 }
 
+function presetStep2Contaminated() {
+    clearSelectedBatchesStep2();
+    const rejectedCb = document.querySelector('.step2-batch-checkbox[data-status="REJECTED"]');
+    if (rejectedCb) {
+        rejectedCb.checked = true;
+    } else {
+        const firstCb = document.querySelector('.step2-batch-checkbox');
+        if (firstCb) firstCb.checked = true;
+    }
+    onStep2BatchCheckboxChange();
+    document.getElementById('step2-meal-name').value = 'Món dùng nguyên liệu vi phạm (Test Poka-Yoke)';
+    document.getElementById('step2-core-temp').value = '82.0';
+    document.getElementById('step2-sensory').value = 'COOKED_THOROUGHLY';
+    handleStep2Submit();
+}
+
 function presetStep2Pass() {
+    selectApprovedBatchesStep2();
     document.getElementById('step2-meal-name').value = 'Gà hấp lá chanh đạt chuẩn chín sâu';
     document.getElementById('step2-core-temp').value = '86.0';
     document.getElementById('step2-sensory').value = 'COOKED_THOROUGHLY';
