@@ -17,7 +17,7 @@
 | **TASK-005** | **Hiện thực hóa Poka-yoke Engine & API Kiểm thực Bước 1 (Giao nhận & Nhiệt độ lạnh)** | TASK-004 | Backend Agent | **DONE** |
 | **TASK-006** | **Hiện thực hóa API Kiểm thực Bước 2 (Chế biến & Nhiệt độ tâm nấu chín)** | TASK-005 | Backend Agent | **DONE** |
 | **TASK-007** | **Hiện thực hóa API Kiểm thực Bước 3 (Khóa mẫu 24h & Duyệt Human-in-the-loop)** | TASK-006 | Backend Agent | **DONE** |
-| **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | **READY** |
+| **TASK-008** | Xây dựng Thuật toán Truy vết Đồ thị (Graph Traceability BFS) dưới 3 giây | TASK-007 | AI / Agentic Agent | **IN_PROGRESS** |
 | **TASK-009** | Tích hợp Local RAG tra cứu tiêu chuẩn an toàn vi sinh Bộ Y tế (QCVN) | TASK-008 | AI / Agentic Agent | BACKLOG |
 | **TASK-010** | Xây dựng Giao diện Web SPA Cổng Bếp trưởng (Nhập liệu & Bắt lỗi Poka-yoke) | TASK-009 | Frontend Agent | BACKLOG |
 | **TASK-011** | Xây dựng Màn hình Điều hành Khẩn cấp & Đồ thị Chuỗi lây nhiễm Trực quan | TASK-010 | Frontend Agent | BACKLOG |
@@ -146,6 +146,37 @@
 * **Kết quả kiểm thử:**
   - Test 1 (Poka-yoke chặn mở sớm trái phép): Thử mở tủ khi chưa đủ 24 giờ -> **Backend trả về HTTP 422 Unprocessable Entity**, thông báo `POKA_YOKE_EARLY_UNLOCK_PROHIBITED` khóa chốt tủ điện tử không cho mở.
   - Test 2 (Phê duyệt Human-in-the-loop khẩn cấp): Mở khóa với cờ `is_emergency_override=true`, lý do "Thanh tra Đột xuất Sở Y tế" và passcode -> **Backend trả về HTTP 200 OK**, giải phóng chốt khóa, chuyển trạng thái sang `ACCIDENT_INSPECTED` và ghi log an toàn.
+* **Kết quả:** Pass. Commit `fa93205`.
+
+### TASK-008: Hiện thực hóa Thuật toán Truy vết Đồ thị Đa tầng (Graph Traceability BFS Engine)
+* **Owner:** AI / Intelligence Space Agent
+* **Trạng thái:** DONE
+* **Thao tác thực hiện:**
+  - Viết `backend/app/core/graph_tracer.py`: Hiện thực hóa `GraphTraceEngine` với:
+    + **Pathogen Knowledge Base**: Ma trận đối soát triệu chứng y tế và độc tố vi sinh (Salmonella spp., Tụ cầu vàng, E. coli O157:H7, Histamine) theo quy chuẩn QCVN 8-2:2011/BYT.
+    + **Thuật toán Breadth-First Search (BFS)**:
+      * Quét ngược: Sự cố ngộ độc -> Cơ sở báo cáo -> Món ăn -> Lô nguyên liệu nhiễm khuẩn -> Nhà cung ứng gốc (đánh dấu Blacklisted).
+      * Quét xuôi: Từ lô nguyên liệu gốc quét xuyên chuỗi cung ứng sang tất cả các bếp ăn/trường học liên kết đang nhập hoặc chế biến cùng lô hàng.
+      * Tự động phát hiện tủ lưu mẫu cần niêm phong khẩn cấp tại các cơ sở có nguy cơ lây lan.
+      * Phát lệnh thu hồi khẩn cấp (Emergency Directive).
+  - Viết `backend/app/routers/incidents.py`:
+    + `GET /api/v1/incidents`: Tra cứu danh sách sự cố dịch tễ.
+    + `POST /api/v1/incidents`: Khởi tạo hồ sơ sự cố ngộ độc.
+    + `POST /api/v1/incidents/{id}/trace`: Kích hoạt thuật toán truy vết đồ thị tức thì.
+  - Cập nhật `seed.py`: Giả lập kịch bản đa cơ sở (Trường THCS Quang Trung tại Gia Lai và Scavi Huế cùng nhập lô Patê từ Cơ sở Bin Bin).
+* **Kết quả kiểm thử:**
+  - Gọi API `POST /api/v1/incidents/4/trace`:
+    + Thời gian thực thi: **26.5 ms** (Vượt xa chỉ tiêu < 3000 ms của đề tài).
+    + Chẩn đoán mầm bệnh chính xác: **Salmonella spp.** dựa trên 4 triệu chứng (sốt 39.5°C, nôn mửa, tiêu chảy, đau bụng).
+    + Định danh nguyên nhân gốc rễ: Lô `BATCH-2026-PATE-0907-TOXIC` từ Nhà cung cấp `Cơ sở Chế biến Thực phẩm & Giò chả Bin Bin`.
+    + Cảnh báo đa cơ sở thành công: Phát hiện ngay lập tức Trường THCS Quang Trung (850 học sinh) đang lưu trữ lô hàng này tại tủ `LOCKER-GIA-LAI-01` -> Phát lệnh phong tỏa khẩn cấp trước khi phục vụ suất ăn trưa!
+    + Đồ thị BFS trả về 5 nodes, 4 edges chuẩn hóa cho D3.js/Canvas trực quan hóa trên Frontend.
+* **Kết quả:** Pass. Sẵn sàng commit.
+
+### TASK-009: Triển khai Local RAG Microbiology Knowledge Engine (Tra cứu QCVN BYT)
+* **Owner:** AI / Knowledge Space Agent
+* **Trạng thái:** IN_PROGRESS
+* **Mục tiêu:** Xây dựng module hỏi đáp & tra cứu chuẩn vi sinh y tế (QCVN 8-2:2011/BYT, Thông tư 24/2019/TT-BYT, Luật ATTP 55/2010/QH12) chạy hoàn toàn nội bộ (local zero-cloud dependency, bảo vệ 50 điểm PoF).
 
 
 

@@ -269,7 +269,22 @@ def seed_initial_data(db: Session, force: bool = False):
         notes="Tôm có dấu hiệu ươn nhũn.",
     )
 
-    db.add_all([insp1_cva, insp1_ltt_ga, insp1_ltt_tom])
+    # Record 4: Trường THCS Quang Trung An Khê cũng nhận lô Patê từ Bin Bin (Nguy cơ ngộ độc cận kề!)
+    insp1_ankhe_pate = models.InspectionStep1(
+        batch_id=batch_pate_toxic.id,
+        facility_id=fac_an_khe.id,
+        inspected_at=now - timedelta(hours=5),
+        inspector_name="Lê Đình Phúc (Bếp trưởng THCS)",
+        delivery_temp=3.8,  # Nhiệt độ giao hàng đạt chuẩn bề ngoài
+        packaging_intact=True,
+        sensory_status="FRESH",
+        passed=True,
+        poka_yoke_triggered=False,
+        rejection_reason=None,
+        notes="Nhập 20kg patê chuẩn bị khẩu phần bánh mì xíu mại cho 850 học sinh bán trú.",
+    )
+
+    db.add_all([insp1_cva, insp1_ltt_ga, insp1_ltt_tom, insp1_ankhe_pate])
     db.flush()
 
     # ==========================================
@@ -323,7 +338,21 @@ def seed_initial_data(db: Session, force: bool = False):
         tamper_detected=False,
         supervisor_name="Lê Văn Thành (KCN Phong Điền)",
     )
-    db.add_all([sample_cva, sample_scavi])
+    sample_ankhe = models.SampleLocker(
+        facility_id=fac_an_khe.id,
+        sample_code="SMP-ANKHE-20260924-01",
+        meal_name="Bánh mì xíu mại patê bán trú",
+        batch_ids=[batch_pate_toxic.id],
+        locker_number="LOCKER-GIA-LAI-01",
+        sealed_at=now - timedelta(hours=1),
+        unlock_eligible_at=now + timedelta(hours=23),
+        is_locked=True,
+        storage_temp=2.5,
+        status="LOCKED_24H",
+        tamper_detected=False,
+        supervisor_name="Lê Đình Phúc (Bếp trưởng)",
+    )
+    db.add_all([sample_cva, sample_scavi, sample_ankhe])
     db.flush()
 
     # ==========================================
@@ -349,8 +378,8 @@ def seed_initial_data(db: Session, force: bool = False):
         "facilities": 4,
         "suppliers": 5,
         "batches": 5,
-        "inspections_step1": 3,
+        "inspections_step1": 4,
         "inspections_step2": 1,
-        "sample_lockers": 2,
+        "sample_lockers": 3,
         "incidents": 1,
     }
