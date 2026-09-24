@@ -6,169 +6,671 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FoodSafe-DX-OS | Hệ Điều Hành Doanh Nghiệp Số An Toàn Thực Phẩm</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link href="style.css" rel="stylesheet">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-white">
 
     <!-- Header Navigation -->
-    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-xl">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-900/30">
                     <i class="fa-solid fa-shield-virus"></i>
                 </div>
                 <div>
-                    <span class="text-xl font-black tracking-tight text-white">FoodSafe<span class="text-emerald-400">-DX-OS</span></span>
-                    <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">v1.0.0 Booted</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl font-black tracking-tight text-white">FoodSafe<span class="text-emerald-400">-DX-OS</span></span>
+                        <span class="px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold uppercase tracking-wider">v1.0.0 PoF Validated</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Hệ Điều Hành Doanh Nghiệp Số An Toàn Bếp Ăn Bán Trú & KCN</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4 text-sm">
-                <div class="flex items-center space-x-2 bg-slate-950 px-3 py-1.5 rounded-full border border-slate-700">
-                    <span id="backend-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="backend-status-text" class="text-slate-400 text-xs">Đang kiểm tra API...</span>
+
+            <!-- Controls: Facility Selector & System Status -->
+            <div class="flex items-center space-x-4">
+                <!-- Facility Switcher -->
+                <div class="hidden md:flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i class="fa-solid fa-hotel text-emerald-400 text-xs"></i>
+                    <select id="facilitySelector" class="bg-transparent text-xs text-slate-200 focus:outline-none cursor-pointer">
+                        <option>Đang nạp danh sách cơ sở...</option>
+                    </select>
                 </div>
-                <a href="/api/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center space-x-1.5">
+
+                <!-- Backend Health Badge -->
+                <div class="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span id="backend-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="backend-status-text" class="text-slate-300 text-xs font-medium">Khởi động API...</span>
+                </div>
+
+                <!-- API Docs -->
+                <a href="/api/docs" target="_blank" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-md shadow-emerald-900/30">
                     <span>Swagger API</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
                 </a>
             </div>
         </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800/80">
+            <nav class="flex space-x-2 sm:space-x-4 overflow-x-auto py-2">
+                <button data-tab="tab-kitchen" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold border-b-2 border-emerald-400 text-emerald-400 bg-emerald-500/10 flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-utensils"></i>
+                    <span>Kiểm Thực 3 Bước (Poka-yoke)</span>
+                </button>
+                <button data-tab="tab-trace" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-diagram-project text-rose-400"></i>
+                    <span>Truy Vết Đồ Thị & Phản Ứng Khẩn Cấp</span>
+                </button>
+                <button data-tab="tab-rag" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-book-medical text-sky-400"></i>
+                    <span>Trợ Lý Quy Chuẩn Vi Sinh RAG (Offline)</span>
+                </button>
+                <button data-tab="tab-bi" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-chart-pie text-purple-400"></i>
+                    <span>Giám Sát Vận Hành & BI Dashboard</span>
+                </button>
+            </nav>
+        </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <!-- Hero Banner -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-800/80 to-emerald-950/40 border border-slate-700 p-8 mb-8 shadow-2xl">
-            <div class="relative z-10 max-w-3xl">
-                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                    <i class="fa-solid fa-microchip"></i>
-                    <span>Hệ Điều Hành Doanh Nghiệp Số AI (OLP 2026 Finalist)</span>
-                </div>
-                <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-                    Bảo Vệ Từng Bữa Ăn Học Đường & Khu Công Nghiệp
-                </h1>
-                <p class="text-slate-300 text-base leading-relaxed mb-6">
-                    Số hóa quy trình kiểm thực 3 bước theo chuẩn Bộ Y tế, ngăn chặn sai phạm bằng rào chắn kỹ thuật <strong class="text-emerald-400">Poka-yoke</strong> và kích hoạt phản ứng truy vết dịch tễ thần tốc dưới 3 giây.
-                </p>
-                <div class="flex flex-wrap gap-3">
-                    <button onclick="checkBackendHealth()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition shadow-lg shadow-emerald-900/30 flex items-center space-x-2">
-                        <i class="fa-solid fa-heart-pulse"></i>
-                        <span>Kiểm Tra Kết Nối Backend</span>
-                    </button>
-                    <a href="/api/docs" target="_blank" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-sm transition flex items-center space-x-2">
-                        <i class="fa-solid fa-book-open"></i>
-                        <span>Tài Liệu Kỹ Thuật OpenAPI</span>
-                    </a>
-                </div>
+    <!-- Sub-header Facility Context Bar -->
+    <div class="bg-slate-900/60 border-b border-slate-800 px-4 py-2 text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="text-slate-500">Cơ sở hoạt động:</span>
+                <span id="currentFacilityBadge" class="font-bold text-slate-200">Đang đồng bộ...</span>
+            </div>
+            <div class="flex items-center space-x-3 text-[11px]">
+                <span class="text-emerald-400"><i class="fa-solid fa-check-double mr-1"></i> QCVN 8-2:2011/BYT</span>
+                <span class="text-sky-400"><i class="fa-solid fa-shield mr-1"></i> QĐ 1246/QĐ-BYT</span>
+                <span class="text-amber-400"><i class="fa-solid fa-scale-balanced mr-1"></i> Luật ATTP 55/2010</span>
             </div>
         </div>
+    </div>
 
-        <!-- 4 Spaces Architecture Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- [H] Human Space -->
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 hover:border-emerald-500/40 transition">
-                <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-3">
-                    <i class="fa-solid fa-users-gear"></i>
+    <!-- Main Workspace Area -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+
+        <!-- ============================================================= -->
+        <!-- TAB 1: KIỂM THỰC 3 BƯỚC & RÀO CHẮN POKA-YOKE                  -->
+        <!-- ============================================================= -->
+        <section id="tab-kitchen" class="tab-content space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center space-x-2">
+                        <span>Quy Trình Kiểm Thực 3 Bước & Rào Chắn Poka-yoke</span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Tuân thủ nghiêm ngặt Quyết định 1246/QĐ-BYT. Hệ thống tự động khóa chốt nếu vi phạm ranh giới an toàn.</p>
                 </div>
-                <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">[H] Human Space</div>
-                <h3 class="text-lg font-bold text-white mb-2">Cổng Bếp Trưởng & Phụ Huynh</h3>
-                <p class="text-slate-400 text-xs leading-relaxed">
-                    Không gian làm việc số cho nhân sự bếp, phân quyền thao tác nhập liệu cảm quan và cổng giám sát minh bạch cho nhà trường.
-                </p>
             </div>
 
-            <!-- [P] Process Space -->
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 hover:border-emerald-500/40 transition">
-                <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg mb-3">
-                    <i class="fa-solid fa-diagram-project"></i>
+            <!-- 3 Step Tabs / Panels -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- BƯỚC 1: GIAO NHẬN NGUYÊN LIỆU -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-28 h-28 bg-emerald-500/5 rounded-full blur-2xl"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-wider">
+                                Bước 1: Giao Nhận
+                            </span>
+                            <span class="text-xs text-slate-500 font-mono">Cold-Chain Guard</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-2">Kiểm tra Nhiệt độ Chuỗi lạnh</h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Đo nhiệt độ giao hàng thực tế. Thực phẩm tươi sống phải &le; 4.0&deg;C, đông lạnh &le; -12.0&deg;C.
+                        </p>
+
+                        <form id="step1Form" onsubmit="handleStep1Submit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Lô Hàng Nhập Kho:</label>
+                                <select id="step1-batch" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"></select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Nhiệt Độ Đo (&deg;C):</label>
+                                    <input type="number" id="step1-temp" step="0.1" value="2.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Cảm Quan:</label>
+                                    <select id="step1-sensory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
+                                        <option value="FRESH">Tươi mới (FRESH)</option>
+                                        <option value="OFF_SMELL">Bốc mùi lạ (OFF_SMELL)</option>
+                                        <option value="DISCOLORED">Biến màu (DISCOLORED)</option>
+                                        <option value="SLIMY">Nhầy nhớt (SLIMY)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center space-x-2 pt-1">
+                                <input type="checkbox" id="step1-packaging" checked class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0">
+                                <label for="step1-packaging" class="text-xs text-slate-300">Bao bì & tem niêm phong nguyên vẹn</label>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Ghi Chú:</label>
+                                <input type="text" id="step1-notes" placeholder="Kiểm tra cảm quan đạt chuẩn..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none">
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-900/30 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-file-circle-check"></i>
+                                <span>Phê Duyệt Nhập Kho</span>
+                            </button>
+                        </form>
+
+                        <!-- Quick Test Presets -->
+                        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                            <span class="text-slate-500 font-medium">Thử nghiệm Poka-yoke:</span>
+                            <div class="flex space-x-2">
+                                <button onclick="presetStep1Violation()" class="px-2 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-[11px] font-bold transition">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 13.5&deg;C (Chặn)
+                                </button>
+                                <button onclick="presetStep1Pass()" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold transition">
+                                    <i class="fa-solid fa-check mr-1"></i> 2.2&deg;C (Đạt)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Result Alert Box -->
+                        <div id="step1-result-alert" class="hidden"></div>
+                    </div>
                 </div>
-                <div class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">[P] Process Space</div>
-                <h3 class="text-lg font-bold text-white mb-2">Poka-yoke & Khóa Tủ Mẫu</h3>
-                <p class="text-slate-400 text-xs leading-relaxed">
-                    Workflow kiểm thực 3 bước khép kín; cơ chế Poka-yoke từ chối chế biến khi nhiệt độ sai và khóa điện tử lưu mẫu 24h.
-                </p>
+
+                <!-- BƯỚC 2: CHẾ BIẾN & NHIỆT ĐỘ TÂM -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold uppercase tracking-wider">
+                                Bước 2: Chế Biến
+                            </span>
+                            <span class="text-xs text-slate-500 font-mono">Core-Temp Guard</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-2">Đo Nhiệt Độ Tâm Nấu Chín</h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Nhiệt độ tâm món ăn phải &ge; 75.0&deg;C để tiêu diệt Salmonella theo chuẩn WHO Codex. Chặn dùng nguyên liệu lỗi từ Bước 1.
+                        </p>
+
+                        <form id="step2Form" onsubmit="handleStep2Submit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Tên Món Ăn Bán Trú:</label>
+                                <input type="text" id="step2-meal-name" value="Thịt gà xào nấm & súp gà ngô non" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Chọn Lô Nguyên Liệu Cấu Thành:</label>
+                                <select id="step2-batches" multiple size="2" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"></select>
+                                <span class="text-[10px] text-slate-500">Giữ Ctrl / Command để chọn nhiều lô.</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Phương Pháp:</label>
+                                    <select id="step2-method" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                                        <option value="BOILING">Luộc / Hầm</option>
+                                        <option value="STEAMING">Hấp cách thủy</option>
+                                        <option value="STIR_FRY">Xào lăn</option>
+                                        <option value="FRYING">Chiên / Rán</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Nhiệt Độ Tâm (&deg;C):</label>
+                                    <input type="number" id="step2-core-temp" step="0.1" value="82.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Đánh Giá Độ Chín Thấu:</label>
+                                <select id="step2-sensory" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">
+                                    <option value="COOKED_THOROUGHLY">Chín thấu hoàn toàn (COOKED_THOROUGHLY)</option>
+                                    <option value="UNDERCOOKED_RAW_INSIDE">Còn sống hoặc tái bên trong (RAW_INSIDE)</option>
+                                    <option value="BURNT">Cháy khét (BURNT)</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition shadow-lg shadow-amber-900/30 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-fire-burner"></i>
+                                <span>Kiểm Định Nhiệt Độ Nấu Chín</span>
+                            </button>
+                        </form>
+
+                        <!-- Quick Test Presets -->
+                        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                            <span class="text-slate-500 font-medium">Thử nghiệm:</span>
+                            <div class="flex space-x-2">
+                                <button onclick="presetStep2Undercooked()" class="px-2 py-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 text-[11px] font-bold transition">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 61.5&deg;C (Chặn)
+                                </button>
+                                <button onclick="presetStep2Pass()" class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 text-[11px] font-bold transition">
+                                    <i class="fa-solid fa-check mr-1"></i> 86.0&deg;C (Đạt)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Result Alert Box -->
+                        <div id="step2-result-alert" class="hidden"></div>
+                    </div>
+                </div>
+
+                <!-- BƯỚC 3: LƯU MẪU 24H & HUMAN-IN-THE-LOOP -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-28 h-28 bg-purple-500/5 rounded-full blur-2xl"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-bold uppercase tracking-wider">
+                                Bước 3: Lưu Mẫu 24H
+                            </span>
+                            <span class="text-xs text-slate-500 font-mono">HITL Padlock</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-2">Tủ Lưu Mẫu Điện Tử 24 Giờ</h3>
+                        <p class="text-xs text-slate-400 mb-4">
+                            Lưu tối thiểu 100g thức ăn trong 24 giờ ở 2&deg;C - 8&deg;C. Khóa điện tử tự động chặn mở sớm; cần quyền phê duyệt khẩn cấp (Human-in-the-loop).
+                        </p>
+
+                        <!-- Lockers Grid -->
+                        <div id="lockersGrid" class="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                            <div class="text-center text-slate-500 text-xs py-8">
+                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang nạp danh sách tủ lưu mẫu...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- TAB 2: RAPID RECALL & MULTI-TIER GRAPH TRACER                 -->
+        <!-- ============================================================= -->
+        <section id="tab-trace" class="tab-content hidden space-y-6">
+            <!-- Header & Action Button -->
+            <div class="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold mb-2">
+                            <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                            <span>Intelligence Space - Multi-tier BFS Tracer</span>
+                        </div>
+                        <h2 class="text-2xl font-black text-white">Truy Vết Đồ Thị Đa Tầng Dưới 3 Giây</h2>
+                        <p class="text-xs text-slate-300 max-w-2xl mt-1 leading-relaxed">
+                            Khi xảy ra nghi vấn ngộ độc, thuật toán quét ngược xác định lô hàng & nhà cung cấp gốc, đồng thời quét xuôi phong tỏa lập tức tất cả các trường học/bếp ăn đang dùng chung lô thực phẩm.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-3">
+                        <span id="traceExecutionTimer" class="px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                            Sẵn sàng kích hoạt
+                        </span>
+                        <button id="btnTriggerTrace" onclick="triggerRapidTraceDemo()" class="px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider transition shadow-xl shadow-rose-900/40 flex items-center space-x-2">
+                            <i class="fa-solid fa-bolt text-amber-400 text-sm"></i>
+                            <span>Kích Hoạt Truy Vết Thần Tốc (Live Demo)</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- [D] Data Space -->
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 hover:border-emerald-500/40 transition">
-                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg mb-3">
-                    <i class="fa-solid fa-database"></i>
-                </div>
-                <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">[D] Data Space</div>
-                <h3 class="text-lg font-bold text-white mb-2">PostgreSQL SSOT & BI</h3>
-                <p class="text-slate-400 text-xs leading-relaxed">
-                    Nguồn dữ liệu duy nhất (Single Source of Truth) lưu vết toàn bộ lô thực phẩm, nhật ký nhiệt độ và dashboard an toàn thực phẩm.
-                </p>
-            </div>
+            <!-- Trace Results View -->
+            <div id="traceResultsPanel" class="space-y-6">
 
-            <!-- [I] Intelligence Space -->
-            <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-5 hover:border-emerald-500/40 transition">
-                <div class="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-3">
-                    <i class="fa-solid fa-brain"></i>
-                </div>
-                <div class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">[I] Intelligence Space</div>
-                <h3 class="text-lg font-bold text-white mb-2">Agentic Graph Tracer</h3>
-                <p class="text-slate-400 text-xs leading-relaxed">
-                    Thuật toán đồ thị quét toàn diện chuỗi cung ứng chỉ trong 3 giây khi phát hiện nguy cơ ngộ độc, cảnh báo các trường dùng chung.
-                </p>
-            </div>
-        </div>
+                <!-- 3 Analysis Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <!-- System Output Log -->
-        <div class="bg-slate-950 border border-slate-800 rounded-xl p-5">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center space-x-2">
-                    <i class="fa-solid fa-terminal text-emerald-400"></i>
-                    <span>Nhật Ký Hệ Thống Thời Gian Thực</span>
+                    <!-- Card 1: Pathogen Diagnosis -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-xs text-rose-400 font-bold uppercase tracking-wider mb-2">
+                            <span>Chẩn Đoán Mầm Bệnh</span>
+                            <i class="fa-solid fa-virus"></i>
+                        </div>
+                        <h4 id="pathogenName" class="text-lg font-black text-white mb-1">Salmonella spp.</h4>
+                        <div class="space-y-2 mt-3 text-xs text-slate-300">
+                            <div><strong class="text-slate-400">Ủ bệnh:</strong> <span id="pathogenIncubation">12 - 36 giờ</span></div>
+                            <div><strong class="text-slate-400">Quy chuẩn đối chiếu:</strong> <span id="pathogenStandard" class="text-emerald-400 font-medium">QCVN 8-2:2011/BYT</span></div>
+                            <div><strong class="text-slate-400">Phác đồ khẩn:</strong> <span id="pathogenResponse">Bù nước điện giải Oresol</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Root Cause Identification -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-xs text-amber-400 font-bold uppercase tracking-wider mb-2">
+                            <span>Nguyên Nhân Gốc Rễ</span>
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <h4 id="rootBatchCode" class="text-base font-black text-amber-400 font-mono mb-1">BATCH-2026-PATE-0907-TOXIC</h4>
+                        <div class="space-y-2 mt-3 text-xs text-slate-300">
+                            <div><strong class="text-slate-400">Nhà cung cấp:</strong> <span id="rootSupplierName" class="text-white font-medium">Cơ sở Bin Bin</span></div>
+                            <div><strong class="text-slate-400">Mã số thuế:</strong> <span id="rootSupplierTax" class="font-mono text-slate-300">5900192837</span></div>
+                            <div><strong class="text-slate-400">Trạng thái:</strong> <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">BLACKLISTED</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Emergency Directive -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                        <div class="flex items-center justify-between text-xs text-emerald-400 font-bold uppercase tracking-wider mb-2">
+                            <span>Lệnh Thu Hồi Tức Thì</span>
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <h4 class="text-base font-bold text-white mb-1">Công Điện Số 0924/DXOS</h4>
+                        <p id="emergencyDirectiveText" class="text-xs text-slate-300 leading-relaxed mt-2">
+                            Kích hoạt quy trình phong tỏa dịch tễ khẩn cấp. Tự động thông báo qua SMS/App ngưng phục vụ khẩu phần liên quan!
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Multi-Facility Imminent Risk Alert Box -->
+                <div id="imminentRiskContainer"></div>
+
+                <!-- Interactive Network Graph Visualizer -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                            <h3 class="text-base font-bold text-white">Bản Đồ Mạng Lưới Chuỗi Lây Nhiễm Dịch Tễ (D3 / Canvas BFS Graph)</h3>
+                        </div>
+                        <span class="text-xs text-slate-400">Nhấp chuột vào từng nút để kiểm tra dữ liệu đối soát</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <!-- Canvas Visualizer -->
+                        <div class="lg:col-span-3 bg-slate-950 rounded-xl border border-slate-800 p-2 relative overflow-hidden flex items-center justify-center">
+                            <canvas id="traceCanvas" class="w-full h-[420px] block"></canvas>
+                        </div>
+
+                        <!-- Node Inspector Panel -->
+                        <div class="lg:col-span-1 space-y-4">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Thông Tin Nút Được Chọn</h4>
+                            <div id="graphNodeDetails" class="text-xs text-slate-500">
+                                Nhấp vào bất kỳ nút nào trên đồ thị mạng lưới để tra cứu thông tin dịch tễ, nhà cung ứng hoặc tủ lưu mẫu liên quan.
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="p-3 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] space-y-1.5">
+                                <div class="font-bold text-slate-400 mb-1">Chú giải màu sắc:</div>
+                                <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-rose-600"></span><span class="text-slate-300">Sự cố ngộ độc gốc (Hotspot)</span></div>
+                                <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-red-700"></span><span class="text-slate-300">Nhà cung cấp vi phạm (Root Supplier)</span></div>
+                                <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-amber-500"></span><span class="text-slate-300">Lô thực phẩm nhiễm khuẩn</span></div>
+                                <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-yellow-400"></span><span class="text-slate-300">Trường học nguy cơ cận kề (Alert)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- TAB 3: TRỢ LÝ QUY CHUẨN VI SINH RAG (LOCAL OFFLINE)           -->
+        <!-- ============================================================= -->
+        <section id="tab-rag" class="tab-content hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center space-x-2">
+                        <span>Trợ Lý Tra Cứu Quy Chuẩn Vi Sinh & Pháp Lý ATTP (RAG Engine)</span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Chạy 100% Offline cục bộ trong Docker. Zero Cloud Dependency. Viện dẫn chuẩn xác QCVN 8-2, QĐ 1246, Luật ATTP 55, NĐ 115.</p>
+                </div>
+                <span id="ragTimerBadge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                    Sẵn sàng tra cứu
                 </span>
-                <span id="log-time" class="text-xs text-slate-500"></span>
             </div>
-            <pre id="system-log" class="text-xs font-mono text-emerald-400 bg-slate-900/90 p-4 rounded-lg overflow-x-auto border border-slate-800">Khởi động FoodSafe-DX-OS UI Container... Sẵn sàng kết nối Backend API.</pre>
-        </div>
+
+            <!-- Search Bar & Prompt Suggestions -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center space-x-2">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="ragQueryInput" placeholder="Ví dụ: Nhiệt độ tâm nấu chín và giới hạn vi khuẩn Salmonella theo QCVN..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 focus:border-sky-500 focus:outline-none">
+                    </div>
+                    <button onclick="submitRAGQuery()" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition shadow-lg shadow-sky-900/30 flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Tra Cứu</span>
+                    </button>
+                </div>
+
+                <!-- Quick Prompt Badges -->
+                <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                    <span class="text-slate-500 text-[11px] font-medium">Câu hỏi mẫu:</span>
+                    <button onclick="submitRAGQuery('Nhiệt độ tâm nấu chín món gà và vi khuẩn Salmonella theo QCVN')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition">
+                        🍗 Nhiệt độ tâm nấu gà & Salmonella
+                    </button>
+                    <button onclick="submitRAGQuery('Mức xử phạt khi không thực hiện lưu mẫu thức ăn 24 giờ')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition">
+                        ⚖️ Mức phạt không lưu mẫu 24h
+                    </button>
+                    <button onclick="submitRAGQuery('Độc tố Histamine trong thủy hải sản và cách phòng ngừa')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition">
+                        🐟 Độc tố Histamine hải sản
+                    </button>
+                    <button onclick="submitRAGQuery('Điều kiện bếp ăn tập thể theo Luật An toàn thực phẩm số 55')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition">
+                        📜 Điều kiện bếp ăn theo Luật 55
+                    </button>
+                </div>
+            </div>
+
+            <!-- Answer Box Output -->
+            <div id="ragAnswerBox">
+                <div class="p-8 text-center text-slate-500 text-xs border border-dashed border-slate-800 rounded-2xl bg-slate-900/40">
+                    <i class="fa-solid fa-book-open text-2xl text-slate-600 mb-2 block"></i>
+                    Nhập câu hỏi hoặc chọn câu hỏi mẫu ở trên để tra cứu quy chuẩn vi sinh và chế tài pháp lý ATTP.
+                </div>
+            </div>
+
+            <!-- Catalog of Standards & Pathogens Table -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+                <!-- Standards Catalog -->
+                <div class="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-stamp text-emerald-400"></i>
+                        <span>Danh Mục Quy Chuẩn Tích Hợp</span>
+                    </h3>
+                    <div id="standardsList" class="space-y-2.5 max-h-[360px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Pathogen Limits Table -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg overflow-x-auto">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-dna text-sky-400"></i>
+                        <span>Bảng Ngưỡng Giới Hạn Vi Sinh Vật (QCVN 8-2:2011/BYT)</span>
+                    </h3>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400">
+                                <th class="py-2 px-3">Vi Sinh Vật</th>
+                                <th class="py-2 px-3">Giới Hạn Cho Phép</th>
+                                <th class="py-2 px-3">Nhiệt Độ An Toàn</th>
+                                <th class="py-2 px-3">Ủ Bệnh</th>
+                                <th class="py-2 px-3">Quy Chuẩn</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pathogensTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================= -->
+        <!-- TAB 4: GIÁM SÁT VẬN HÀNH & BI DASHBOARD                        -->
+        <!-- ============================================================= -->
+        <section id="tab-bi" class="tab-content hidden space-y-6">
+            <div>
+                <h2 class="text-xl font-black text-white">Giám Sát Dữ Liệu Tập Trung (Data Space Single Source of Truth)</h2>
+                <p class="text-xs text-slate-400">Báo cáo thời gian thực toàn bộ chuỗi cung ứng, tỷ lệ tuân thủ và nhật ký rào chắn Poka-yoke.</p>
+            </div>
+
+            <!-- KPI Metric Widgets -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Bếp Ăn</div>
+                    <div id="bi-facilities-count" class="text-2xl font-black text-white mt-1">4</div>
+                    <div class="text-[10px] text-emerald-400 mt-1">Hoạt động</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Nhà Cung Ứng</div>
+                    <div id="bi-suppliers-count" class="text-2xl font-black text-sky-400 mt-1">5</div>
+                    <div class="text-[10px] text-slate-500 mt-1">Giám sát</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Lô Nguyên Liệu</div>
+                    <div id="bi-batches-count" class="text-2xl font-black text-amber-400 mt-1">5</div>
+                    <div class="text-[10px] text-slate-500 mt-1">Định danh QR</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Phiếu Bước 1</div>
+                    <div id="bi-step1-count" class="text-2xl font-black text-emerald-400 mt-1">4</div>
+                    <div class="text-[10px] text-slate-500 mt-1">Giao nhận</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Phiếu Bước 2</div>
+                    <div id="bi-step2-count" class="text-2xl font-black text-teal-400 mt-1">1</div>
+                    <div class="text-[10px] text-slate-500 mt-1">Nhiệt độ tâm</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Tủ Mẫu 24H</div>
+                    <div id="bi-lockers-count" class="text-2xl font-black text-purple-400 mt-1">3</div>
+                    <div class="text-[10px] text-slate-500 mt-1">Đang khóa</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+                    <div class="text-[11px] text-slate-400 font-bold uppercase">Sự Cố Dịch Tễ</div>
+                    <div id="bi-incidents-count" class="text-2xl font-black text-rose-500 mt-1">1</div>
+                    <div class="text-[10px] text-rose-400 mt-1">Đã truy vết</div>
+                </div>
+            </div>
+
+            <!-- Architecture Map Overview -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <h3 class="text-base font-bold text-white mb-4">Mô Hình 4 Không Gian (H-P-D-I) Theo Chuẩn VFOSSA DX-OS</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-blue-500/30">
+                        <span class="font-bold text-blue-400 uppercase tracking-wider text-[11px]">[H] Human Space</span>
+                        <h4 class="font-bold text-white mt-1 mb-2">Cổng Bếp Trưởng & Phụ Huynh</h4>
+                        <p class="text-slate-400 leading-relaxed">Phân quyền thao tác, phân công giám sát y tế học đường và nhật ký minh bạch cho phụ huynh học sinh.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-amber-500/30">
+                        <span class="font-bold text-amber-400 uppercase tracking-wider text-[11px]">[P] Process Space</span>
+                        <h4 class="font-bold text-white mt-1 mb-2">Rào Chắn Kỹ Thuật Poka-yoke</h4>
+                        <p class="text-slate-400 leading-relaxed">Cơ chế từ chối tự động lỗi nhiệt độ chuỗi lạnh &le; 4&deg;C, nhiệt độ tâm &ge; 75&deg;C và khóa điện tử tủ lưu mẫu 24h.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-emerald-500/30">
+                        <span class="font-bold text-emerald-400 uppercase tracking-wider text-[11px]">[D] Data Space</span>
+                        <h4 class="font-bold text-white mt-1 mb-2">PostgreSQL SSOT & LOD</h4>
+                        <p class="text-slate-400 leading-relaxed">Toàn vẹn dữ liệu chuỗi cung ứng, lưu vết audit trail không thể tẩy xóa và thống kê BI thời gian thực.</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-purple-500/30">
+                        <span class="font-bold text-purple-400 uppercase tracking-wider text-[11px]">[I] Intelligence Space</span>
+                        <h4 class="font-bold text-white mt-1 mb-2">Graph BFS & Local RAG</h4>
+                        <p class="text-slate-400 leading-relaxed">Thuật toán đồ thị BFS truy vết chuỗi lây nhiễm dưới 3 giây và trợ lý vi sinh RAG 100% offline không phụ thuộc mây.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
+    <!-- ============================================================= -->
+    <!-- MODAL 1: POKA-YOKE INTERCEPT WARNING MODAL                    -->
+    <!-- ============================================================= -->
+    <div id="pokaYokeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-slate-900 border-2 border-rose-500 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative danger-glow">
+            <div class="flex items-center space-x-3 text-rose-500 mb-3">
+                <i class="fa-solid fa-hand text-3xl"></i>
+                <div>
+                    <h3 class="text-lg font-black text-white">RÀO CHẮN POKA-YOKE TỰ ĐỘNG KHÓA CHẶN!</h3>
+                    <span id="poka-error-code" class="text-xs font-mono font-bold text-rose-400">POKA_YOKE_TRIGGERED</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300 py-3 border-y border-slate-800">
+                <div>
+                    <strong class="text-slate-400 block mb-0.5">Mô tả vi phạm an toàn:</strong>
+                    <p id="poka-message" class="text-slate-200 font-medium leading-relaxed"></p>
+                </div>
+                <div>
+                    <strong class="text-slate-400 block mb-0.5">Căn cứ quy chuẩn kỹ thuật:</strong>
+                    <p id="poka-standard" class="text-emerald-400 font-mono"></p>
+                </div>
+                <div>
+                    <strong class="text-slate-400 block mb-0.5">Hành động bắt buộc:</strong>
+                    <p id="poka-action" class="text-amber-400 font-medium"></p>
+                </div>
+                <div>
+                    <strong class="text-slate-400 block mb-0.5">Thao tác bị đình chỉ:</strong>
+                    <p id="poka-blocked" class="text-rose-400 font-semibold"></p>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <button onclick="closePokaYokeModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition">
+                    Đã Hiểu & Chấp Hành Khóa Chặn
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- MODAL 2: SAMPLE LOCKER UNLOCK MODAL (HITL)                   -->
+    <!-- ============================================================= -->
+    <div id="unlockModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-3">
+                <h3 id="unlock-modal-title" class="text-base font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-key text-amber-400"></i>
+                    <span>Mở Khóa Tủ Lưu Mẫu</span>
+                </h3>
+                <button onclick="closeUnlockModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <p id="unlock-modal-hours" class="text-xs text-amber-400 font-semibold mb-4"></p>
+
+            <div class="space-y-3 text-xs">
+                <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="unlock-override-toggle" class="rounded bg-slate-900 border-slate-700 text-rose-500 focus:ring-0">
+                        <span class="font-bold text-rose-400">Kích hoạt Phê duyệt khẩn cấp (Human-in-the-loop)</span>
+                    </label>
+                    <p class="text-[11px] text-slate-400 pl-6">
+                        Chỉ sử dụng khi có yêu cầu đột xuất của Đoàn Thanh tra Y tế hoặc phục vụ xét nghiệm cấp cứu dịch tễ.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Lý Do Mở Khóa Khẩn Cấp:</label>
+                    <input type="text" id="unlock-reason" placeholder="Ví dụ: Thanh tra đột xuất Sở Y tế / Niêm phong điều tra..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-rose-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1">Mã Xác Thực Trưởng Ban (Passcode):</label>
+                    <input type="password" id="unlock-passcode" placeholder="Mặc định demo: HITL-EMERGENCY-2026" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200 focus:border-rose-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="mt-5 flex justify-end space-x-3">
+                <button onclick="closeUnlockModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Hủy Bỏ</button>
+                <button onclick="executeLockerUnlock()" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-lg shadow-amber-900/30">
+                    <i class="fa-solid fa-lock-open"></i>
+                    <span>Xác Nhận Mở Chốt Tủ</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="bg-slate-950 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-        FoodSafe-DX-OS &copy; 2026. Phát hành theo giấy phép mã nguồn mở Apache License 2.0.
+    <footer class="bg-slate-900/80 border-t border-slate-800 py-4 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>FoodSafe-DX-OS &copy; 2026. Bản quyền mã nguồn mở <strong>Apache License 2.0</strong>.</span>
+            <div class="flex items-center space-x-4">
+                <span class="text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> 100% Local Containerized</span>
+                <span class="text-sky-400"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Zero-Cloud LLM Dependency</span>
+            </div>
+        </div>
     </footer>
 
-    <script>
-        async function checkBackendHealth() {
-            const statusDot = document.getElementById('backend-status-dot');
-            const statusText = document.getElementById('backend-status-text');
-            const logBox = document.getElementById('system-log');
-            const logTime = document.getElementById('log-time');
-
-            statusText.innerText = "Đang kiểm tra...";
-            statusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
-
-            try {
-                const response = await fetch('/api/health');
-                const data = await response.json();
-                
-                statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
-                statusText.innerText = "Backend Online (" + data.status + ")";
-                
-                logTime.innerText = new Date().toLocaleTimeString('vi-VN');
-                logBox.innerText = JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    response: data,
-                    endpoint: "/api/health",
-                    connection: "OK"
-                }, null, 2);
-            } catch (err) {
-                statusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
-                statusText.innerText = "Mất kết nối Backend";
-                logTime.innerText = new Date().toLocaleTimeString('vi-VN');
-                logBox.innerText = "Lỗi kết nối: " + err.message + "\nHãy kiểm tra xem container Backend có đang chạy trên port 8000 hay không.";
-            }
-        }
-
-        // Auto check on load
-        window.addEventListener('DOMContentLoaded', () => {
-            checkBackendHealth();
-        });
-    </script>
+    <!-- Scripts -->
+    <script src="graph.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

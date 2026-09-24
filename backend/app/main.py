@@ -49,8 +49,9 @@ app = FastAPI(
     title="FoodSafe-DX-OS Backend API",
     description="Hệ điều hành Doanh nghiệp số An toàn Thực phẩm - Bếp ăn Bán trú & Doanh nghiệp",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
     lifespan=lifespan,
 )
 
@@ -94,6 +95,7 @@ def root():
 
 
 @app.get("/health", tags=["Health"])
+@app.get("/api/health", tags=["Health"])
 def health_check():
     """Healthcheck endpoint for Docker container probes."""
     return {
